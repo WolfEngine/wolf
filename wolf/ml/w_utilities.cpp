@@ -450,6 +450,103 @@ auto get_env_vector_of_int(
 	return int_vector;
 }
 
+auto map_key_value_to_label(
+	_In_ const int pKeyValue) -> int
+{
+	int label = 0;
+	switch (pKeyValue)
+	{
+		// 49 and 177 are keyboard key values related to "1"
+		case 49:
+		case 177:
+			label = 1;
+			break;
+		// 50 and 178 are keyboard key values related to "2"
+		case 50:
+		case 178:
+			label = 2;
+			break;
+		// 51 and 179 are keyboard key values related to "3"
+		case 51:
+		case 179:
+			label = 3;
+			break;
+		// 52 and 180 are keyboard key values related to "4"
+		case 52:
+		case 180:
+			label = 4;
+			break;
+		default:
+			label = -1;
+			break;
+	}
+	return label;
+}
+
+auto images_in_directory(
+	_In_ const std::string pDirPath) -> std::vector<std::string>
+{
+	std::vector<std::string> all_images_path = {};
+
+	for (const auto& entry : fs::directory_iterator(pDirPath))
+	{
+		if (entry.is_regular_file() &&
+			(entry.path().extension() == ".jpeg" ||
+			 entry.path().extension() == ".jpg" ||
+			 entry.path().extension() == ".png"))
+		{
+			all_images_path.push_back(entry.path().string());
+		}
+	}
+
+	return all_images_path;
+}
+
+auto create_labeled_image_text(
+	_In_ const std::string pImageFolderPath,
+	_In_ const std::string pLabeledImageTextFile,
+	_In_ const std::string pHistory) -> void
+{
+	std::vector<std::string> all_images_path = {};
+	if (std::filesystem::exists(pImageFolderPath))
+	{
+		all_images_path = images_in_directory(pImageFolderPath);
+	}
+	else
+	{
+		std::cout << "The path to images is not exist!!!" << std::endl;
+	}
+
+	int n_images = all_images_path.size();
+
+	std::vector<std::string> text_info = {};
+	int last_processed_image_number = 0;
+	if (std::filesystem::exists(pHistory))
+	{
+		text_info = read_text_file_line_by_line(pHistory);
+		last_processed_image_number = std::stoi(text_info[0]);
+	}
+
+	cv::Mat image = cv::Mat(cv::Size(100, 100), CV_8UC3, cv::Scalar(0, 0, 0));
+	int label = 0;
+
+	for (int i = last_processed_image_number; i < n_images; i++)
+	{
+		image = cv::imread(all_images_path[i], cv::IMREAD_COLOR);
+		cv::imshow("The target image", image);
+		int pressed_key = cv::waitKey();
+		label = map_key_value_to_label(pressed_key);
+		std::string line_info = all_images_path[i] + " " + std::to_string(label);
+		write_in_file_append(
+			pLabeledImageTextFile,
+			line_info);
+		std::cout
+			<< " -**- : " << line_info << std::endl;
+	}
+
+	image.release();
+}
+
 auto get_relative_path_to_root() -> std::string {
   fs::path cwd = fs::current_path();
   fs::path dot_env_file_path;

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#ifdef WOLF_ML_OCR
+#if defined(WOLF_ML_OCR) || defined(WOLF_ML_NUDITY_DETECTION)
 
 #define BOOST_TEST_MODULE ml_utilities
 
@@ -14,6 +14,7 @@
 
 namespace fs = std::filesystem;
 fs::path utilities_asset_path = "../wolf/ml/test/common_test_asset/utilities";
+fs::path common_test_asset_path = "../wolf/ml/test/common_test_asset";
 
 using namespace wolf::ml;
 
@@ -47,6 +48,7 @@ BOOST_AUTO_TEST_CASE(line_of_numbers_in_string_to_vector_of_integers_function) {
   BOOST_TEST(integer_list[3] == 400);
 }
 
+#ifdef WOLF_ML_OCR
 BOOST_AUTO_TEST_CASE(store_image_in_folder_function) {
   std::vector<w_referee::match_result_struct> temp_video_result;
   w_referee::match_result_struct temp;
@@ -114,6 +116,7 @@ BOOST_AUTO_TEST_CASE(write_results_in_file_function) {
                            std::to_string(temp_video_result[0].frame_number)) ==
           0);
 }
+#endif // WOLF_ML_OCR
 
 BOOST_AUTO_TEST_CASE(read_text_file_line_by_line_function) {
   fs::path file_path = "./test_read_text_file_line_by_line.txt";
@@ -304,13 +307,13 @@ BOOST_AUTO_TEST_CASE(get_env_cv_rect_function) {
   BOOST_TEST(value.height == 14);
 }
 
-BOOST_AUTO_TEST_CASE(get_env_vector_of_int) {
+BOOST_AUTO_TEST_CASE(get_env_vector_of_int_function) {
   fs::path dot_env_file_path = utilities_asset_path / ".get_env_vector_of_int";
 
   set_env(dot_env_file_path.string().c_str());
 
   std::string key = "NUDITY_DETECTION_MODEL_PERMUTE";
-  std::vector<int> value = get_env_cv_rect(key.c_str());
+  std::vector<int> value = get_env_vector_of_int(key.c_str());
 
   BOOST_TEST(value[0] == 0);
   BOOST_TEST(value[1] == 3);
@@ -326,6 +329,17 @@ BOOST_AUTO_TEST_CASE(get_relative_path_to_root_function) {
   BOOST_TEST(result);
 }
 
-#endif // WOLF_ML_OCR
+BOOST_AUTO_TEST_CASE(images_in_directory_function)
+{
+	fs::path image_path = common_test_asset_path / "images";
+
+	std::vector<std::string> all_images = images_in_directory(image_path.string().c_str());
+
+	int n_images = all_images.size();
+
+	BOOST_TEST(n_images == 3);
+}
+
+#endif // defined(WOLF_ML_OCR) || defined(WOLF_ML_NUDITY_DETECTION)
 
 #endif // WOLF_TEST

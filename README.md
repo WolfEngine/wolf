@@ -35,9 +35,9 @@ cmake --build --preset android-arm64-release
 
 For example for building wolf for windows:
 ```
-cmake . --preset win-x64-release
-cmake --build --preset win-x64-release
-cmake --install C:/wolf/build/win-x64-release --prefix C:/wolf
+cmake . --preset windows-x64-msvc-static
+cmake --build --preset windows-x64-msvc-static
+cmake --install C:/wolf/build/windows-x64-msvc-static --prefix C:/wolf
 ```
 
 ## Supported platforms

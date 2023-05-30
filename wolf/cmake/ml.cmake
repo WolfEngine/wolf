@@ -84,7 +84,6 @@ if(WOLF_ML_OCR)
     list(APPEND SRCS
         ${WOLF_ML_OCR_SRC}
     )
-    message("-----"${WOLF_ML_OCR_SRC})
 endif()
 
 if(WOLF_ML_NUDITY_DETECTION)

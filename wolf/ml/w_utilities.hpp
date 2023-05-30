@@ -224,6 +224,35 @@ W_API auto get_env_vector_of_int(
 	_In_ const char* pKey) -> std::vector<int>;
 
 /*!
+	The function takes an input image folder path and client tags as parameters. It
+	then generates a text file that contains the path to each image in the folder
+	and its corresponding label based on the client tags. This output file can be
+	used for further analysis or training of machine learning models. Additionally,
+	the function stores the last processed image number in a separate history text
+	file, allowing the function to resume from where it left off if it is interrupted
+	or stopped before processing all images in the folder.
+
+	\param pImageFolderPath the image file path.
+	\param pLabeledImageTextFile the pLabeledImageTextFile file path.
+	\param pHistory the file that stores the last processed image number.
+	\return (void)
+*/
+W_API auto create_labeled_image_text(
+	_In_ std::string pImageFolderPath,
+	_In_ std::string pLabeledImageTextFile,
+	_In_ std::string pHistory) -> void;
+
+/*!
+	The function return the value of an environment variable based on the input key.
+
+	\param pDirPath The path of image folder.
+	\return the result would be a vector contains image paths
+*/
+W_API auto images_in_directory(
+	_In_ const std::string pDirPath) -> std::vector<std::string>;
+
+
+/*!
         The function returns the related root path compared to the current path.
 
         \return The related root path compared to the current path.

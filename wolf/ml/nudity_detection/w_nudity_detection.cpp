@@ -82,3 +82,57 @@ auto w_nud_det::network_warm_up(_In_ int pHeight, _In_ int pWidth) -> void {
     auto result = nudity_detection(temp_image.data, pWidth, pHeight, temp_image.channels());
   }
 }
+
+auto w_nud_det::accuracy_check(
+	_In_ std::string pInfoFilePath) -> void
+{
+	// w_nud_det* nudity_detection = new w_nud_det(pModelPath);
+	std::vector<std::string> info_of_images = {};
+	if (std::filesystem::exists(pInfoFilePath))
+	{
+		info_of_images = read_text_file_line_by_line(pInfoFilePath);
+	}
+	else
+	{
+		std::cout << "The path to the text file is not exist!!!" << std::endl;
+	}
+
+	std::vector<std::string> image_path_label = {};
+	std::string image_path = "";
+	cv::Mat image;
+	std::vector<float> value = {};
+	int number_of_model_outputs = get_env_int("NUDITY_DETECTION_MODEL_NUMBER_OF_MODEL_OUTPUT");
+	int label = 0;
+	int number_of_correct_decision = 0;
+	int number_of_act = 0;
+	float model_threshold = get_env_float("NUDITY_DETECTION_MODEL_THRESHOLD");
+	for (int i = 0; i < info_of_images.size(); i++)
+	{
+		image_path_label = split_string(info_of_images[i], ' ');
+		if (image_path_label.size() == 2)
+		{
+			image_path = image_path_label[0];
+			label = std::stoi(image_path_label[1]);
+
+			image = cv::imread(image_path, cv::IMREAD_COLOR);
+			value = nudity_detection(
+				image.data,
+				image.cols,
+				image.rows,
+				image.channels());
+
+			if (label > 0 && label < number_of_model_outputs + 1)
+			{
+				number_of_act++;
+				if (value[label - 1] > model_threshold)
+				{
+					number_of_correct_decision++;
+				}
+			}
+		}
+	}
+
+	float model_accuracy = float(number_of_correct_decision) / float(number_of_act);
+
+	std::cout << "The accuracy of model for this test database is: " << model_accuracy << std::endl;
+}

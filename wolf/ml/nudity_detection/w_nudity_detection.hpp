@@ -52,6 +52,15 @@ class w_nud_det {
   */
   W_API auto network_warm_up(_In_ int pHeight, _In_ int pWidth) -> void;
 
+  /*!
+  The function uses to calculate the accuracy of the input model over pre-labeled images.  
+  	\param pModelPath the path to the nsfw model
+  	\param pInfoFilePath the path to the labeled file.
+  	\return (void)
+  */
+  W_API auto accuracy_check(
+  	_In_ std::string pInfoFilePath) -> void;
+
  private:
   // :cppflow:model _model;
   torch::jit::script::Module _model;
