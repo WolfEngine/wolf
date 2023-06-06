@@ -151,10 +151,9 @@ public:
      necessary configurations for processing optical characters. \return returns
      the text of the game scene
   */
-  auto char_vec_to_string(
+  std::vector<character_and_center> char_vec_to_string(
       _In_ std::vector<w_ocr_engine::characters_struct> char_vector,
-      _In_ cv::Mat &frame, _In_ config_for_ocr_struct &ocr_config)
-      -> std::vector<character_and_center>;
+      _In_ cv::Mat &frame, _In_ config_for_ocr_struct &ocr_config);
 
   /*!
           The image_to_string function gets an image and returns the text of the
@@ -213,7 +212,7 @@ public:
   double euclidean_distance(characters_struct &first_character,
                             characters_struct &second_character);
 
-  auto euclidean_distance(int x1, int x2, int y1, int y2) -> double;
+  double euclidean_distance(int x1, int x2, int y1, int y2);
 
   /*!
           The spaces_between_two_chars function returns a string containing the
@@ -224,9 +223,9 @@ public:
           \param  height_to_dist_ratio The ratio of the character height and
      distance. \return    The spaces that should be placed between characters.
   */
-  auto spaces_between_two_chars(_In_ characters_struct left_char,
+  std::string spaces_between_two_chars(_In_ characters_struct left_char,
                                 _In_ characters_struct right_char,
-                                _In_ float height_to_dist_ratio) -> std::string;
+                                _In_ float height_to_dist_ratio);
 
   /*!
           The char_clusters_to_text puts the clustered characters together to
@@ -352,7 +351,7 @@ public:
           \return    The result would be true if all characters in the cluster
      share the same height.
   */
-  auto same_height(_In_ std::vector<characters_struct> pClusteredChars) -> bool;
+  bool same_height(_In_ std::vector<characters_struct> pClusteredChars);
 
   /*!
           The same_level function returns true if all characters in the cluster
@@ -362,7 +361,7 @@ public:
           \return    The result would be true if all characters in the cluster
      share the same y-position.
   */
-  auto same_level(_In_ std::vector<characters_struct> pClusteredChars) -> bool;
+  bool same_level(_In_ std::vector<characters_struct> pClusteredChars);
 
   /*!
           The same_level function returns true if all characters in the cluster
@@ -374,10 +373,10 @@ public:
           \param  pShow
           \return    The output would be a cv image containing the clusters.
   */
-  static auto show_contours(_Inout_ cv::Mat &pImage,
+  static void show_contours(_Inout_ cv::Mat &pImage,
                             _In_ std::vector<characters_struct> pClusteredChars,
                             _In_ std::string pWindowName,
-                            _In_ bool pShow = true) -> void;
+                            _In_ bool pShow = true);
 
   /*!
           The fill_cluster_features function extracts all feature of the input
@@ -388,10 +387,9 @@ public:
           \param  pIndex    The index of the array in the vector.
           \return    An structure of the cluster features.
   */
-  auto
+  cluster_features
   fill_cluster_features(_Inout_ std::vector<characters_struct> &pClusteredChar,
-                        _In_ int pImageWidth, _In_ int pIndex)
-      -> cluster_features;
+                        _In_ int pImageWidth, _In_ int pIndex);
 
   /*!
           The check_twin_clusters function checks the input cluster features and
@@ -402,9 +400,9 @@ public:
           \param  pThreshold    The threshold for decision-making.
           \return    The result would be true if the input clusters are twins.
   */
-  auto check_twin_clusters(_In_ cluster_features &pFirstInput,
+  bool check_twin_clusters(_In_ cluster_features &pFirstInput,
                            _In_ cluster_features &pSecondInput,
-                           _In_ float pThreshold) -> bool;
+                           _In_ float pThreshold);
 
   /*!
           The keep_twins function eliminates the single clusters.
@@ -414,9 +412,9 @@ public:
           \param	pWord    The value would be "true" if it is a word
      cluster. \return
   */
-  auto keep_twins(
+  void keep_twins(
       _Inout_ std::vector<std::vector<characters_struct>> &pClusteredChar,
-      _In_ int pImageWidth, _In_ int pImageHeight, _In_ bool pWord) -> void;
+      _In_ int pImageWidth, _In_ int pImageHeight, _In_ bool pWord);
 
   /*!
           The keep_time function keeps the time cluster.
@@ -424,9 +422,8 @@ public:
           \param  pClusteredChars    The cluster contains many characters.
           \return
   */
-  auto
-  keep_time(_Inout_ std::vector<std::vector<characters_struct>> &pClusteredChar)
-      -> void;
+  void
+  keep_time(_Inout_ std::vector<std::vector<characters_struct>> &pClusteredChar);
 
   /*!
           The add_text_to_original_image adds texts to the input image.
@@ -435,9 +432,9 @@ public:
           \param  pClusteredChars    The cluster contains many characters.
           \return
   */
-  auto add_text_to_original_image(
+  void add_text_to_original_image(
       _Inout_ cv::Mat &pImage,
-      _In_ std::vector<characters_struct> &pClusteredChar) -> void;
+      _In_ std::vector<characters_struct> &pClusteredChar);
 
 private:
   /*!<An object of tesseract library (to recognize digits)..*/

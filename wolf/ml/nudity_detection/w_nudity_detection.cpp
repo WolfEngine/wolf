@@ -20,9 +20,9 @@ w_nud_det::w_nud_det(_In_ std::string& nudity_detection_model_path) {
 
 w_nud_det::~w_nud_det() = default;
 
-auto w_nud_det::nudity_detection(_In_ uint8_t* pImageData, _In_ const int pImageWidth,
+std::vector<float> w_nud_det::nudity_detection(_In_ uint8_t* pImageData, _In_ const int pImageWidth,
                                  _In_ const int pImageHeight, _In_ const int pImageChannels)
-    -> std::vector<float> {
+{
   std::vector<float> result;
 
 	torch::Tensor tensor_image = torch::from_blob(pImageData, {1, pImageHeight, pImageWidth, pImageChannels}, torch::kByte);
@@ -76,15 +76,15 @@ auto w_nud_det::nudity_detection(_In_ uint8_t* pImageData, _In_ const int pImage
   return result;
 }
 
-auto w_nud_det::network_warm_up(_In_ int pHeight, _In_ int pWidth) -> void {
+void w_nud_det::network_warm_up(_In_ int pHeight, _In_ int pWidth) {
   for (int i = 0; i < 2; i++) {
     cv::Mat const temp_image = cv::Mat(cv::Size(pWidth, pHeight), CV_8UC3, cv::Scalar(0, 0, 0));
     auto result = nudity_detection(temp_image.data, pWidth, pHeight, temp_image.channels());
   }
 }
 
-auto w_nud_det::accuracy_check(
-	_In_ std::string pInfoFilePath) -> void
+void w_nud_det::accuracy_check(
+	_In_ std::string pInfoFilePath)
 {
 	// w_nud_det* nudity_detection = new w_nud_det(pModelPath);
 	std::vector<std::string> info_of_images = {};

@@ -57,7 +57,7 @@ w_soccer::w_soccer() {
 
 w_soccer::~w_soccer() {}
 
-auto w_soccer::set_config(_In_ char *pType) -> w_ocr_engine::config_struct {
+w_ocr_engine::config_struct w_soccer::set_config(_In_ char *pType) {
   std::string type(pType);
 
   w_ocr_engine::config_struct config;
@@ -99,7 +99,7 @@ auto w_soccer::set_config(_In_ char *pType) -> w_ocr_engine::config_struct {
   return config;
 }
 
-auto w_soccer::set_config_for_ocr(_In_ char *pType) -> config_for_ocr_struct {
+config_for_ocr_struct w_soccer::set_config_for_ocr(_In_ char *pType) {
   std::string type(pType);
   config_for_ocr_struct config;
 
@@ -120,7 +120,7 @@ auto w_soccer::set_config_for_ocr(_In_ char *pType) -> config_for_ocr_struct {
   return config;
 }
 
-auto w_soccer::fill_stat_map() -> void {
+void w_soccer::fill_stat_map() {
   stat_first_half = get_env_string("SOCCER_STAT_FIRST_HALF_STRING");
   stat_second_half = get_env_string("SOCCER_STAT_SECOND_HALF_STRING");
   stat_extra_first_half = get_env_string("SOCCER_STAT_EXTRA_FIRST_HALF_STRING");
@@ -147,8 +147,8 @@ auto w_soccer::fill_stat_map() -> void {
       "penalty"));
 }
 
-auto w_soccer::extract_result_from_frame_boxes(
-    _In_ cv::Mat &frame, _Inout_ frame_result_struct &frame_data) -> void {
+void w_soccer::extract_result_from_frame_boxes(
+    _In_ cv::Mat &frame, _Inout_ frame_result_struct &frame_data) {
   std::vector<w_ocr_engine::character_and_center> temp_words, temp_team_names;
 
   cv::Mat frame_box = frame(screen_identity.window);
@@ -199,8 +199,8 @@ auto w_soccer::extract_result_from_frame_boxes(
   frame_box.release();
 }
 
-auto w_soccer::extract_result_based_on_clusters_symmetricity(
-    _In_ cv::Mat &frame, _Inout_ frame_result_struct &frame_data) -> void {
+void w_soccer::extract_result_based_on_clusters_symmetricity(
+    _In_ cv::Mat &frame, _Inout_ frame_result_struct &frame_data) {
   cv::Mat cloned_image = frame.clone();
   int image_width = frame.cols;
 
@@ -277,7 +277,7 @@ auto w_soccer::extract_result_based_on_clusters_symmetricity(
   cloned_image.release();
 }
 
-auto w_soccer::extract_penalty_result_symmetricity(
+void w_soccer::extract_penalty_result_symmetricity(
     _In_ cv::Mat &frame,
     _In_ std::vector<std::vector<w_ocr_engine::characters_struct>>
         digits_candidates,
@@ -285,7 +285,7 @@ auto w_soccer::extract_penalty_result_symmetricity(
         words_candidates,
     _In_ std::vector<std::vector<w_ocr_engine::characters_struct>>
         time_candidates,
-    _Inout_ frame_result_struct &frame_data) -> void {
+    _Inout_ frame_result_struct &frame_data) {
   if (frame_data.stat.compare(get_env_string("SOCCER_STAT_CHECK_PENALTY")) !=
           0 ||
       digits_candidates.size() != 2 || time_candidates.size() != 1) {
@@ -362,10 +362,10 @@ auto w_soccer::extract_penalty_result_symmetricity(
   return;
 }
 
-auto w_soccer::single_image_result_extraction(_In_ uint8_t *pRawImage,
+int w_soccer::single_image_result_extraction(_In_ uint8_t *pRawImage,
                                               _In_ int height, _In_ int width,
                                               _In_ ocr_callback *callback)
-    -> int {
+{
   int desired_height = get_env_int("SOCCER_GLOBAL_FRAME_HEIGHT");
   int desired_width = get_env_int("SOCCER_GLOBAL_FRAME_WIDTH");
   if (!pRawImage || height != desired_height || width != desired_width) {
@@ -434,13 +434,13 @@ auto w_soccer::single_image_result_extraction(_In_ uint8_t *pRawImage,
   return 0;
 }
 
-auto w_soccer::extract_all_image_char_clusters(
+void w_soccer::extract_all_image_char_clusters(
     cv::Mat &image,
     std::vector<std::vector<w_ocr_engine::characters_struct>>
         &digits_candidates,
     std::vector<std::vector<w_ocr_engine::characters_struct>> &words_candidates,
     std::vector<std::vector<w_ocr_engine::characters_struct>> &time_candidates)
-    -> void {
+{
   cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
   int global_threshold = get_env_int("SOCCER_GLOBAL_THRESHOLD");
   cv::threshold(image, image, global_threshold, 255,
@@ -521,8 +521,8 @@ auto w_soccer::extract_all_image_char_clusters(
   return;
 }
 
-auto w_soccer::replace_team_names_with_most_similar_string(
-    _Inout_ std::vector<w_referee::match_result_struct> &result) -> void {
+void w_soccer::replace_team_names_with_most_similar_string(
+    _Inout_ std::vector<w_referee::match_result_struct> &result) {
   for (int i = 0; i < int(result.size()); i++) {
     // LOG_P(w_log_type::W_LOG_INFO, "recognized home name : %s",
     // result[i].home_name.text); LOG_P(w_log_type::W_LOG_INFO, "recognized away
@@ -539,9 +539,9 @@ auto w_soccer::replace_team_names_with_most_similar_string(
   }
 }
 
-auto w_soccer::initial_match_result_struct(
+w_referee::match_result_struct w_soccer::initial_match_result_struct(
     w_referee::frame_result_struct frame_data, cv::Mat &image)
-    -> w_referee::match_result_struct {
+{
   w_referee::match_result_struct temp_match_data;
   temp_match_data.all_frames_results.push_back(frame_data);
   temp_match_data.stat = frame_data.stat;
@@ -551,8 +551,8 @@ auto w_soccer::initial_match_result_struct(
   return temp_match_data;
 }
 
-auto w_soccer::update_match_data(_In_ w_referee::frame_result_struct frame_data,
-                                 _In_ cv::Mat &image) -> void {
+void w_soccer::update_match_data(_In_ w_referee::frame_result_struct frame_data,
+                                 _In_ cv::Mat &image) {
   if (matches_data.size() == 0 ||
       frame_data.frame_number >
           matches_data[matches_data.size() - 1].frame_number + 10) {
@@ -565,7 +565,7 @@ auto w_soccer::update_match_data(_In_ w_referee::frame_result_struct frame_data,
   }
 }
 
-auto w_soccer::extract_game_results() -> void {
+void w_soccer::extract_game_results() {
   w_referee ocr_object;
 
   for (int i = 0; i < matches_data.size(); i++) {
@@ -596,11 +596,11 @@ auto w_soccer::extract_game_results() -> void {
   }
 }
 
-auto w_soccer::get_matches_data()
-    -> std::vector<w_referee::match_result_struct> {
+std::vector<w_referee::match_result_struct> w_soccer::get_matches_data()
+{
   return matches_data;
 }
 
-auto w_soccer::get_stat_map() -> std::map<std::string, std::string> {
+std::map<std::string, std::string> w_soccer::get_stat_map() {
   return stat_map;
 }

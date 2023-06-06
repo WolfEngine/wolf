@@ -40,8 +40,8 @@ class w_nud_det {
           \param pImageChannels the number of image channels.
           \return a vector of float numbers each between 0 to 1 that shows the nudity factors.
   */
-  W_API auto nudity_detection(_In_ uint8_t* pImageData, _In_ int pImageWidth, _In_ int pImageHeight,
-                              _In_ int pImageChannels) -> std::vector<float>;
+  W_API std::vector<float> nudity_detection(_In_ uint8_t* pImageData,
+                                _In_ int pImageWidth, _In_ int pImageHeight, _In_ int pImageChannels);
 
   /*!
   The function uses to warm-up the network in the w_nud_det class initialization.
@@ -50,7 +50,7 @@ class w_nud_det {
           \param pWidth the temp image width.
           \return (void)
   */
-  W_API auto network_warm_up(_In_ int pHeight, _In_ int pWidth) -> void;
+  W_API void network_warm_up(_In_ int pHeight, _In_ int pWidth);
 
   /*!
   The function uses to calculate the accuracy of the input model over pre-labeled images.  
@@ -58,8 +58,8 @@ class w_nud_det {
   	\param pInfoFilePath the path to the labeled file.
   	\return (void)
   */
-  W_API auto accuracy_check(
-  	_In_ std::string pInfoFilePath) -> void;
+  W_API void accuracy_check(
+  	_In_ std::string pInfoFilePath);
 
  private:
   // :cppflow:model _model;

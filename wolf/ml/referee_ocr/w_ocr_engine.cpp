@@ -155,8 +155,8 @@ double w_ocr_engine::euclidean_distance(characters_struct &first_character,
   return dist;
 }
 
-auto w_ocr_engine::euclidean_distance(int x1, int x2, int y1, int y2)
-    -> double {
+double w_ocr_engine::euclidean_distance(int x1, int x2, int y1, int y2)
+{
   double dist_x = std::pow(float(x1 - x2), 2.0);
   double dist_y = std::pow(float(y1 - y2), 2.0);
   double dist = std::pow(dist_x + dist_y, 0.5);
@@ -164,10 +164,10 @@ auto w_ocr_engine::euclidean_distance(int x1, int x2, int y1, int y2)
   return dist;
 }
 
-auto w_ocr_engine::spaces_between_two_chars(characters_struct left_char,
+std::string w_ocr_engine::spaces_between_two_chars(characters_struct left_char,
                                             characters_struct right_char,
                                             float height_to_dist_ratio)
-    -> std::string {
+{
   std::string temp_spaces = "";
 
   int left_char_right_corner =
@@ -272,10 +272,10 @@ w_ocr_engine::image_to_char_structs(_In_ cv::Mat &image_box,
   return filtered_characters;
 }
 
-auto w_ocr_engine::char_vec_to_string(
+std::vector<w_ocr_engine::character_and_center> w_ocr_engine::char_vec_to_string(
     _In_ std::vector<w_ocr_engine::characters_struct> char_vector,
     _In_ cv::Mat &frame, _In_ config_for_ocr_struct &ocr_config)
-    -> std::vector<character_and_center> {
+{
   std::vector<w_ocr_engine::characters_struct> labeled_characters =
       label_chars_in_char_structs(char_vector, frame, ocr_config);
   std::vector<std::vector<w_ocr_engine::characters_struct>>
@@ -625,8 +625,8 @@ std::vector<std::string> w_ocr_engine::split_string(std::string input_string,
   return seglist;
 }
 
-auto w_ocr_engine::same_height(
-    _In_ std::vector<characters_struct> pClusteredChars) -> bool {
+bool w_ocr_engine::same_height(
+    _In_ std::vector<characters_struct> pClusteredChars) {
   bool result = true;
   int average_height = 0;
 
@@ -647,8 +647,8 @@ auto w_ocr_engine::same_height(
   return result;
 }
 
-auto w_ocr_engine::same_level(
-    _In_ std::vector<characters_struct> pClusteredChars) -> bool {
+bool w_ocr_engine::same_level(
+    _In_ std::vector<characters_struct> pClusteredChars) {
   bool result = true;
   int average_height = 0;
   int average_level = 0;
@@ -675,10 +675,11 @@ auto w_ocr_engine::same_level(
   return result;
 }
 
-auto w_ocr_engine::show_contours(
+void w_ocr_engine::show_contours(
     _Inout_ cv::Mat &pImage,
     _In_ std::vector<characters_struct> pClusteredChars,
-    _In_ std::string pWindowName, _In_ bool pShow) -> void {
+    _In_ std::string pWindowName, _In_ bool pShow)
+{
   cv::Mat mask_image;
 
   for (int i = 0; i < pClusteredChars.size(); i++) {
@@ -700,9 +701,9 @@ auto w_ocr_engine::show_contours(
   return;
 }
 
-auto w_ocr_engine::fill_cluster_features(
+w_ocr_engine::cluster_features w_ocr_engine::fill_cluster_features(
     _Inout_ std::vector<characters_struct> &pClusteredChar,
-    _In_ int pImageWidth, _In_ int pIndex) -> cluster_features {
+    _In_ int pImageWidth, _In_ int pIndex) {
   cluster_features features;
 
   features.index_in_parent_vector = pIndex;
@@ -762,9 +763,9 @@ auto w_ocr_engine::fill_cluster_features(
   return features;
 }
 
-auto w_ocr_engine::check_twin_clusters(_In_ cluster_features &pFirstInput,
+bool w_ocr_engine::check_twin_clusters(_In_ cluster_features &pFirstInput,
                                        _In_ cluster_features &pSecondInput,
-                                       _In_ float pThreshold) -> bool {
+                                       _In_ float pThreshold) {
   bool result = false;
 
   float Y_diff_ration =
@@ -802,9 +803,9 @@ auto w_ocr_engine::check_twin_clusters(_In_ cluster_features &pFirstInput,
   return result;
 }
 
-auto w_ocr_engine::keep_twins(
+void w_ocr_engine::keep_twins(
     _Inout_ std::vector<std::vector<characters_struct>> &pClusteredChar,
-    _In_ int pImageWidth, _In_ int pImageHeight, _In_ bool pWord) -> void {
+    _In_ int pImageWidth, _In_ int pImageHeight, _In_ bool pWord) {
   std::vector<cluster_features> cluster_features_vector;
   int n_cluster = pClusteredChar.size();
 
@@ -926,9 +927,8 @@ auto w_ocr_engine::keep_twins(
   return;
 }
 
-auto w_ocr_engine::keep_time(
-    _Inout_ std::vector<std::vector<characters_struct>> &pClusteredChar)
-    -> void {
+void w_ocr_engine::keep_time(
+    _Inout_ std::vector<std::vector<characters_struct>> &pClusteredChar) {
   int n_cluster = pClusteredChar.size();
   if (n_cluster == 0) {
     return;
@@ -946,9 +946,9 @@ auto w_ocr_engine::keep_time(
   }
 }
 
-auto w_ocr_engine::add_text_to_original_image(
+void w_ocr_engine::add_text_to_original_image(
     _Inout_ cv::Mat &pImage,
-    _In_ std::vector<characters_struct> &pClusteredChar) -> void {
+    _In_ std::vector<characters_struct> &pClusteredChar) {
   for (int i = 0; i < pClusteredChar.size(); i++) {
     cv::putText(pImage, pClusteredChar[i].text,
                 cv::Point(pClusteredChar[i].bound_rect.x,

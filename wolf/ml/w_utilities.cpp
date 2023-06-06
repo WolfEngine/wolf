@@ -40,8 +40,8 @@ nostd::shared_ptr<trace::Tracer> get_tracer() {
 
 namespace wolf::ml {
 
-auto get_nearest_string(_In_ std::string pInput, std::string pFilePath)
-    -> std::string {
+std::string get_nearest_string(_In_ std::string pInput, std::string pFilePath)
+{
   // LOG_P(w_log_type::W_LOG_INFO, "path to similar strings file: %s",
   // pFilePath);
   std::ifstream similar_strings(pFilePath);
@@ -71,9 +71,8 @@ auto get_nearest_string(_In_ std::string pInput, std::string pFilePath)
   }
 }
 
-auto get_nearest_string(_In_ std::string pInput,
+std::string get_nearest_string(_In_ std::string pInput,
                         _In_ std::map<std::string, std::string> pMap)
-    -> std::string
 
 {
   float threshold = get_env_float("SIMILARITY_THRESHOLD_STAT");
@@ -143,8 +142,8 @@ line_of_numbers_in_string_to_vector_of_integers(std::string pVariable) {
   return result;
 }
 
-auto normalized_levenshtein_similarity(_In_ const std::string &s1,
-                                       _In_ const std::string &s2) -> float {
+float normalized_levenshtein_similarity(_In_ const std::string &s1,
+                                       _In_ const std::string &s2){
   const size_t m = s1.size();
   const size_t n = s2.size();
   int distance;
@@ -179,8 +178,8 @@ auto normalized_levenshtein_similarity(_In_ const std::string &s1,
   return 1 - normalized_distance;
 }
 
-auto read_text_file_line_by_line(_In_ std::string pFilePath)
-    -> std::vector<std::string> {
+std::vector<std::string> read_text_file_line_by_line(_In_ std::string pFilePath)
+{
 #ifdef __TELEMETRY
   auto span =
       trace::Scope(get_tracer()->StartSpan("read_text_file_line_by_line"));
@@ -248,10 +247,10 @@ bool string_2_boolean(std::string pVariable) {
 }
 
 #ifdef WOLF_ML_OCR
-auto store_image_in_folder(
+void store_image_in_folder(
     _In_ std::vector<w_referee::match_result_struct> &pVideoResult,
     _In_ std::string pOutputImageFolderPath, _In_ std::string pVideoPath)
-    -> void {
+{
 #ifdef __TELEMETRY
   auto span = get_tracer()->StartSpan("store_image_in_folder");
 #endif
@@ -270,9 +269,9 @@ auto store_image_in_folder(
   return;
 }
 
-auto write_results_in_file(
+void write_results_in_file(
     _In_ std::vector<w_referee::match_result_struct> &pVideoResult,
-    _In_ std::string pOutputTextPath) -> void {
+    _In_ std::string pOutputTextPath) {
 #ifdef __TELEMETRY
   auto span = trace::Scope(get_tracer()->StartSpan("write_results_in_file"));
 #endif
@@ -335,7 +334,7 @@ void write_in_file(std::string file_path, std::string content) {
   return;
 }
 
-auto is_line_contains_variable(const std::string pStr) -> bool {
+bool is_line_contains_variable(const std::string pStr) {
 #ifdef __TELEMETRY
   auto span =
       trace::Scope(get_tracer()->StartSpan("is_line_contains_variable"));
@@ -349,7 +348,7 @@ auto is_line_contains_variable(const std::string pStr) -> bool {
   return decision;
 }
 
-auto set_env(_In_ const char *pDotEnvFilePath) -> void {
+void set_env(_In_ const char *pDotEnvFilePath) {
 #ifdef __TELEMETRY
   auto span = trace::Scope(get_tracer()->StartSpan("set_env"));
 #endif
@@ -384,7 +383,7 @@ auto get_env_int(_In_ const char *pKey) -> int {
   return value;
 }
 
-auto get_env_float(_In_ const char *pKey) -> float {
+float get_env_float(_In_ const char *pKey) {
   float value = -1;
   if (const char *env_p = getenv(pKey)) {
     std::string temp(env_p);
@@ -396,7 +395,7 @@ auto get_env_float(_In_ const char *pKey) -> float {
   return value;
 }
 
-auto get_env_boolean(_In_ const char *pKey) -> bool {
+bool get_env_boolean(_In_ const char *pKey) {
   bool value = false;
   if (const char *env_p = getenv(pKey)) {
     std::string temp(env_p);
@@ -408,7 +407,7 @@ auto get_env_boolean(_In_ const char *pKey) -> bool {
   return value;
 }
 
-auto get_env_string(_In_ const char *pKey) -> std::string {
+std::string get_env_string(_In_ const char *pKey) {
   std::string value;
   if (const char *env_p = getenv(pKey)) {
     value = std::string(env_p);
@@ -419,7 +418,7 @@ auto get_env_string(_In_ const char *pKey) -> std::string {
   return value;
 }
 
-auto get_env_cv_rect(_In_ const char *pKey) -> cv::Rect {
+cv::Rect get_env_cv_rect(_In_ const char *pKey) {
   cv::Rect value = cv::Rect(0, 0, 0, 0);
   if (const char *env_p = getenv(pKey)) {
     std::string temp(env_p);
@@ -433,8 +432,8 @@ auto get_env_cv_rect(_In_ const char *pKey) -> cv::Rect {
   return value;
 }
 
-auto get_env_vector_of_int(
-	_In_ const char* pKey) -> std::vector<int>
+std::vector<int> get_env_vector_of_int(
+	_In_ const char* pKey)
 {
 	std::vector<int> int_vector ={};
 	if (const char* env_p = getenv(pKey))
@@ -450,8 +449,8 @@ auto get_env_vector_of_int(
 	return int_vector;
 }
 
-auto map_key_value_to_label(
-	_In_ const int pKeyValue) -> int
+int map_key_value_to_label(
+	_In_ const int pKeyValue)
 {
 	int label = 0;
 	switch (pKeyValue)
@@ -483,8 +482,8 @@ auto map_key_value_to_label(
 	return label;
 }
 
-auto images_in_directory(
-	_In_ const std::string pDirPath) -> std::vector<std::string>
+std::vector<std::string> images_in_directory(
+	_In_ const std::string pDirPath)
 {
 	std::vector<std::string> all_images_path = {};
 
@@ -502,10 +501,10 @@ auto images_in_directory(
 	return all_images_path;
 }
 
-auto create_labeled_image_text(
+void create_labeled_image_text(
 	_In_ const std::string pImageFolderPath,
 	_In_ const std::string pLabeledImageTextFile,
-	_In_ const std::string pHistory) -> void
+	_In_ const std::string pHistory)
 {
 	std::vector<std::string> all_images_path = {};
 	if (std::filesystem::exists(pImageFolderPath))
@@ -547,7 +546,7 @@ auto create_labeled_image_text(
 	image.release();
 }
 
-auto get_relative_path_to_root() -> std::string {
+std::string get_relative_path_to_root() {
   fs::path cwd = fs::current_path();
   fs::path dot_env_file_path;
   if (cwd.parent_path().filename().compare("build") == 0) {
@@ -566,8 +565,8 @@ auto get_relative_path_to_root() -> std::string {
   return temp;
 }
 
-auto get_first_character_of_string(_In_ std::string pStr, _In_ bool pEscape)
-    -> std::string {
+std::string get_first_character_of_string(_In_ std::string pStr, _In_ bool pEscape)
+{
   if (pEscape || pStr.length() == 0) {
     return pStr;
   }
@@ -577,4 +576,5 @@ auto get_first_character_of_string(_In_ std::string pStr, _In_ bool pEscape)
 
   return result;
 }
+
 } // namespace wolf::ml::ocr

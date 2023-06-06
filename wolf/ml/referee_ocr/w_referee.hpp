@@ -181,9 +181,9 @@ public:
      related to the string. \param the_vector vector of string with theirs
      repetition number. \return is the string in the vector?
   */
-  W_API auto if_the_string_is_in_the_vector(
+  W_API bool if_the_string_is_in_the_vector(
       w_ocr_engine::character_and_center the_character,
-      std::vector<vote_over_string_vector> &the_vector) -> bool;
+      std::vector<vote_over_string_vector> &the_vector);
 
   /*!
           The voting function.

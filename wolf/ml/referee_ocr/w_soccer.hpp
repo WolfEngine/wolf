@@ -50,14 +50,14 @@ class w_soccer : public w_referee {
           \param pType The type of box
           \return
   */
-  W_API static auto set_config(_In_ char *pType) -> w_ocr_engine::config_struct;
+  W_API static w_ocr_engine::config_struct set_config(_In_ char *pType);
 
   /*!
           The function set the stat map global variable by dotenvs information.
   */
-  auto fill_stat_map() -> void;
+  void fill_stat_map();
 
-  W_API auto set_config_for_ocr(_In_ char *pType) -> config_for_ocr_struct;
+  W_API config_for_ocr_struct set_config_for_ocr(_In_ char *pType);
 
   /*!
           The function returns frame results, the results are extracted from
@@ -67,8 +67,8 @@ class w_soccer : public w_referee {
           \param frame_data The frame result would be stored in the frame_date.
           \return Void
   */
-  W_API auto extract_result_from_frame_boxes(
-      _In_ cv::Mat &frame, _Inout_ frame_result_struct &frame_data) -> void;
+  W_API void extract_result_from_frame_boxes(
+      _In_ cv::Mat &frame, _Inout_ frame_result_struct &frame_data);
 
   /*!
           The function returns frame results, the results are extracted based on
@@ -78,8 +78,8 @@ class w_soccer : public w_referee {
           \param frame_data The frame result would be stored in the frame_date.
           \return Void
   */
-  W_API auto extract_result_based_on_clusters_symmetricity(
-      _In_ cv::Mat &frame, _Inout_ frame_result_struct &frame_data) -> void;
+  W_API void extract_result_based_on_clusters_symmetricity(
+      _In_ cv::Mat &frame, _Inout_ frame_result_struct &frame_data);
 
   /*!
           The function checks for penalty results and if the scene contains the
@@ -92,7 +92,7 @@ class w_soccer : public w_referee {
           \param frame_data The frame result would be stored in the frame_date.
           \return Void
   */
-  W_API auto extract_penalty_result_symmetricity(
+  W_API void extract_penalty_result_symmetricity(
       _In_ cv::Mat &frame,
       _In_ std::vector<std::vector<w_ocr_engine::characters_struct>>
           digits_candidates,
@@ -100,7 +100,7 @@ class w_soccer : public w_referee {
           words_candidates,
       _In_ std::vector<std::vector<w_ocr_engine::characters_struct>>
           time_candidates,
-      _Inout_ frame_result_struct &frame_data) -> void;
+      _Inout_ frame_result_struct &frame_data);
 
   /*!
   The function returns the game results, if the image contains the game final
@@ -110,9 +110,9 @@ class w_soccer : public w_referee {
   format. \param height The image height. \param width The image width. \param
   pStr The image result. \return Void
   */
-  W_API auto single_image_result_extraction(_In_ uint8_t *pRawImage,
+  W_API int single_image_result_extraction(_In_ uint8_t *pRawImage,
                                             _In_ int height, _In_ int width,
-                                            _In_ ocr_callback *callback) -> int;
+                                            _In_ ocr_callback *callback);
 
   /*!
   The extract_all_image_char_clusters function returns the character cluster
@@ -124,14 +124,14 @@ class w_soccer : public w_referee {
           \param pTimeCandidates The character cluster of the stat texts.
           \return Void
   */
-  W_API auto extract_all_image_char_clusters(
+  W_API void extract_all_image_char_clusters(
       cv::Mat &pImage,
       std::vector<std::vector<w_ocr_engine::characters_struct>>
           &pDigitsCandidates,
       std::vector<std::vector<w_ocr_engine::characters_struct>>
           &pWordsCandidates,
       std::vector<std::vector<w_ocr_engine::characters_struct>>
-          &pTimeCandidates) -> void;
+          &pTimeCandidates);
 
   /*!
   replace team names stored in match_result_struct using string similarity
@@ -140,8 +140,8 @@ class w_soccer : public w_referee {
           \param result input struct
           \return
   */
-  W_API static auto replace_team_names_with_most_similar_string(
-      _Inout_ std::vector<w_referee::match_result_struct> &result) -> void;
+  W_API static void replace_team_names_with_most_similar_string(
+      _Inout_ std::vector<w_referee::match_result_struct> &result);
 
   /*!
   The initial_match_result_struct function fills a match_result_struct with the
@@ -151,9 +151,8 @@ class w_soccer : public w_referee {
           \param image input struct
           \return An initialed variable of match data structure.
   */
-  W_API auto initial_match_result_struct(
-      w_referee::frame_result_struct frame_data, cv::Mat &image)
-      -> w_referee::match_result_struct;
+  W_API  w_referee::match_result_struct initial_match_result_struct(
+      w_referee::frame_result_struct frame_data, cv::Mat &image);
 
   /*!
   The update_match_data function store frames data in the match_date variable.
@@ -162,8 +161,8 @@ class w_soccer : public w_referee {
           \param image input struct
           \return
   */
-  W_API auto update_match_data(_In_ w_referee::frame_result_struct frame_data,
-                               _In_ cv::Mat &image) -> void;
+  W_API void update_match_data(_In_ w_referee::frame_result_struct frame_data,
+                               _In_ cv::Mat &image);
 
   /*!
   The extract_game_results function extracts the game results from the
@@ -171,21 +170,21 @@ class w_soccer : public w_referee {
 
           \return
   */
-  W_API auto extract_game_results() -> void;
+  W_API void extract_game_results();
 
   /*!
   The get_matches_data function returns the private match_data variable.
 
           \return The private match_data variable.
   */
-  W_API auto get_matches_data() -> std::vector<w_referee::match_result_struct>;
+  W_API std::vector<w_referee::match_result_struct> get_matches_data();
 
   /*!
           The get_stat_map function returns the private stat_map variable.
 
           \return The private stat_map variable.
   */
-  W_API auto get_stat_map() -> std::map<std::string, std::string>;
+  W_API std::map<std::string, std::string> get_stat_map();
 
  private:
   /*!<The number of frame.*/

@@ -51,9 +51,9 @@ auto w_referee::if_the_string_is_in_the_vector(
   return is_in_the_vector;
 }
 
-auto w_referee::voting_over_results_and_names(
+void w_referee::voting_over_results_and_names(
     frame_result_struct &voted_results,
-    std::vector<frame_result_struct> &all_results) -> void {
+    std::vector<frame_result_struct> &all_results) {
   std::vector<vote_over_string_vector> home_result{};
   std::vector<vote_over_string_vector> away_result{};
   std::vector<vote_over_string_vector> home_name{};
