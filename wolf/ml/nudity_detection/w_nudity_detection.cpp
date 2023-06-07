@@ -55,12 +55,9 @@ auto w_nud_det::nudity_detection(_In_ uint8_t* pImageData, _In_ const int pImage
 
 	at::Tensor output_tensor;
 
-	if(output.isTensor())
-	{
+	if(output.isTensor()) {
 		output_tensor = output.toTensor();
-	}
-	else
-	{
+	} else {
 		// get the vector of tensors from the output IValue
 		std::vector<at::Tensor> tensor_vector = output.toTensorVector();
 
@@ -68,8 +65,7 @@ auto w_nud_det::nudity_detection(_In_ uint8_t* pImageData, _In_ const int pImage
 		output_tensor = tensor_vector[1];
 	}
 
-	for (int i = 0; i < output_tensor.sizes()[1]; i++)
-	{
+	for (int i = 0; i < output_tensor.sizes()[1]; i++) {
 		result.push_back(output_tensor[0][i].item<float>());
 	}
 
@@ -84,16 +80,12 @@ auto w_nud_det::network_warm_up(_In_ int pHeight, _In_ int pWidth) -> void {
 }
 
 auto w_nud_det::accuracy_check(
-	_In_ std::string pInfoFilePath) -> void
+	_In_ std::string pInfoFilePath) -> float
 {
-	// w_nud_det* nudity_detection = new w_nud_det(pModelPath);
 	std::vector<std::string> info_of_images = {};
-	if (std::filesystem::exists(pInfoFilePath))
-	{
+	if (std::filesystem::exists(pInfoFilePath)) {
 		info_of_images = read_text_file_line_by_line(pInfoFilePath);
-	}
-	else
-	{
+	} else {
 		std::cout << "The path to the text file is not exist!!!" << std::endl;
 	}
 
@@ -106,11 +98,9 @@ auto w_nud_det::accuracy_check(
 	int number_of_correct_decision = 0;
 	int number_of_act = 0;
 	float model_threshold = get_env_float("NUDITY_DETECTION_MODEL_THRESHOLD");
-	for (int i = 0; i < info_of_images.size(); i++)
-	{
+	for (int i = 0; i < info_of_images.size(); i++) {
 		image_path_label = split_string(info_of_images[i], ' ');
-		if (image_path_label.size() == 2)
-		{
+		if (image_path_label.size() == 2) {
 			image_path = image_path_label[0];
 			label = std::stoi(image_path_label[1]);
 
@@ -121,18 +111,19 @@ auto w_nud_det::accuracy_check(
 				image.rows,
 				image.channels());
 
-			if (label > 0 && label < number_of_model_outputs + 1)
-			{
+			if (label > 0 && label < number_of_model_outputs + 1) {
 				number_of_act++;
-				if (value[label - 1] > model_threshold)
-				{
+				if (value[label - 1] > model_threshold) {
 					number_of_correct_decision++;
 				}
 			}
 		}
 	}
 
-	float model_accuracy = float(number_of_correct_decision) / float(number_of_act);
-
-	std::cout << "The accuracy of model for this test database is: " << model_accuracy << std::endl;
+	float model_accuracy = -1.0;
+	if(info_of_images.size() > 0) {
+		model_accuracy = float(number_of_correct_decision) / float(number_of_act);
+	}
+	
+	return model_accuracy;
 }

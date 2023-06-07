@@ -19,9 +19,6 @@
 #include <string>
 #include <vector>
 
-// #include "spdlog/sinks/basic_file_sink.h"
-// #include "spdlog/sinks/stdout_color_sinks.h"
-// #include "spdlog/spdlog.h"
 namespace fs = std::filesystem;
 #ifdef __TELEMETRY
 #include "opentelemetry/sdk/version/version.h"
@@ -42,11 +39,8 @@ namespace wolf::ml {
 
 auto get_nearest_string(_In_ std::string pInput, std::string pFilePath)
     -> std::string {
-  // LOG_P(w_log_type::W_LOG_INFO, "path to similar strings file: %s",
-  // pFilePath);
   std::ifstream similar_strings(pFilePath);
   float threshold = get_env_float("SIMILARITY_THRESHOLD");
-  // LOG_P(w_log_type::W_LOG_INFO, "similarity threshold: %f", threshold);
   std::string candidate_string;
   float best_similarity = 0;
   std::string most_similar;
@@ -77,7 +71,6 @@ auto get_nearest_string(_In_ std::string pInput,
 
 {
   float threshold = get_env_float("SIMILARITY_THRESHOLD_STAT");
-  // LOG_P(w_log_type::W_LOG_INFO, "similarity threshold: %f", threshold);
   std::string candidate_string;
   float best_similarity = 0;
   std::string most_similar;
@@ -113,8 +106,6 @@ std::string get_value_from_json_file_by_key(std::string pJsonFilePath,
   std::ifstream ifs{pJsonFilePath};
   if (!ifs.is_open()) {
     fs::path cwd = fs::current_path();
-    // spdlog::error("current path {}", cwd.string());
-    // spdlog::error("Could not open {} file for reading!", pJsonFilePath);
     std::exit(ENOENT);
   }
 
@@ -215,7 +206,6 @@ std::vector<std::string> split_string(std::string input_string,
                                       char reference) {
 #ifdef __TELEMETRY
   auto scoped_span = trace::Scope(get_tracer()->StartSpan("split_string"));
-  // auto scoped_span = get_tracer()->StartSpan("split_string");
 #endif
   std::stringstream test(input_string);
   std::string segment;
@@ -307,7 +297,6 @@ void write_in_file_append(std::string file_path, std::string content) {
 #ifdef __TELEMETRY
   auto scoped_span =
       trace::Scope(get_tracer()->StartSpan("write_in_file_append"));
-  // auto scoped_span = get_tracer()->StartSpan("write_in_file_append");
 #endif
 
   std::ofstream file;
@@ -323,7 +312,6 @@ void write_in_file(std::string file_path, std::string content) {
 #ifdef __TELEMETRY
   auto scoped_span =
       trace::Scope(get_tracer()->StartSpan("write_in_file_append"));
-  // auto scoped_span = get_tracer()->StartSpan("write_in_file_append");
 #endif
 
   std::ofstream file;
@@ -540,8 +528,6 @@ auto create_labeled_image_text(
 		write_in_file_append(
 			pLabeledImageTextFile,
 			line_info);
-		std::cout
-			<< " -**- : " << line_info << std::endl;
 	}
 
 	image.release();

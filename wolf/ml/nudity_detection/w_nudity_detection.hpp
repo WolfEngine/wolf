@@ -10,10 +10,6 @@
 #include <torch/script.h>
 #include <torch/torch.h>
 
-// #include "cppflow/cppflow.h"
-// #include "dlib_export.h"
-// #include "salieri.h"
-
 #include "wolf.hpp"
 
 namespace wolf::ml::nudet {
@@ -53,16 +49,15 @@ class w_nud_det {
   W_API auto network_warm_up(_In_ int pHeight, _In_ int pWidth) -> void;
 
   /*!
-  The function uses to calculate the accuracy of the input model over pre-labeled images.  
-  	\param pModelPath the path to the nsfw model
+  The function uses to calculate the accuracy of the input model over pre-labeled images. 
+  
   	\param pInfoFilePath the path to the labeled file.
-  	\return (void)
+  	\return the accuracy of model throw the given images
   */
   W_API auto accuracy_check(
-  	_In_ std::string pInfoFilePath) -> void;
+  	_In_ std::string pInfoFilePath) -> float;
 
  private:
-  // :cppflow:model _model;
   torch::jit::script::Module _model;
 };
 }  // namespace wolf::ml::nudet
