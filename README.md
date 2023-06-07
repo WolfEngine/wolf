@@ -104,7 +104,7 @@ cmake --install C:/wolf/build/win-x64-release --prefix C:/wolf
 * [Wolf.Playout](https://www.youtube.com/watch?v=EZSdEjBvuGY), a playout automation software
 * [Falcon](https://youtu.be/ygpz35ddZ_4), a real time 3D monitoring system
 * [PlayPod](https://playpod.ir), the first cloud gaming platform launched in Middle East
-* [RivalArium](https://rivalarium.com), play and rival other users via our leagues and duels from any device, any location and let your skills generate income
+* [Arium](https://arium.gg), play and rival other users via our leagues and duels from any device, any location and let your skills generate income
 
 ## [Youtube](https://www.youtube.com/c/WolfEngine)
 ## [Twitter](https://www.twitter.com/Wolf_Engine)
