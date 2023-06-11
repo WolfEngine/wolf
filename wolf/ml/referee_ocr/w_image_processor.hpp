@@ -88,65 +88,65 @@ struct config_for_ocr_struct {
 
 /*!
         Find all contours in filtered image.
-        \param  filtered_image    The image needs to be processed.
+        \param  p_filtered_image    The image needs to be processed.
         \return vector of contours..
         */
 std::vector<std::vector<cv::Point>> find_all_countors(
-    _In_ cv::Mat &filtered_image);
+    _In_ cv::Mat &p_filtered_image);
 
 /*!
         blur image by specified configuration
-        \param  frame_box    The image needs to be processed.
-        \param  ocr_config    The necessary configurations for processing
+        \param  p_frame_box    The image needs to be processed.
+        \param  p_ocr_config    The necessary configurations for processing
    optical characters.
         */
-void gaussian_blur(_Inout_ cv::Mat &frame_box,
-                   _In_ config_for_ocr_struct &ocr_config);
+void gaussian_blur(_Inout_ cv::Mat &p_frame_box,
+                   _In_ config_for_ocr_struct &p_ocr_config);
 
 /*!
         takes an image and makes the background white. this function uses a
-   threshold to find background points \param  contour_image    The image needs
-   to be processed. \param  ocr_config    The necessary configurations for
+   threshold to find background points \param  p_contour_image    The image needs
+   to be processed. \param  p_ocr_config    The necessary configurations for
    processing optical characters.
         */
-void make_contour_white_background(_Inout_ cv::Mat &contour_image,
-                                   _In_ config_for_ocr_struct &ocr_config);
+void make_contour_white_background(_Inout_ cv::Mat &p_contour_image,
+                                   _In_ config_for_ocr_struct &p_ocr_config);
 
 /*!
           The negative_image function changed the pixels' value. The new value
    is obtained by 255 - the previous value.
 
-          \param  contour_image    contour_image is a cropped part of the
+          \param  p_contour_image    p_contour_image is a cropped part of the
    original image that contains one of the contours.
         */
-void negative_image(_Inout_ cv::Mat &contour_image);
+void negative_image(_Inout_ cv::Mat &p_contour_image);
 
 /*!
           apply some filters to better find contours.
 
-          \param  image    The image needs to be processed.
-          \param  ocr_config    The necessary configurations for processing
+          \param  p_image    The image needs to be processed.
+          \param  p_ocr_config    The necessary configurations for processing
    optical characters.
         */
 cv::Mat prepare_image_for_contour_detection(
-    _In_ cv::Mat &image, _In_ config_for_ocr_struct &ocr_config);
+    _In_ cv::Mat &p_image, _In_ config_for_ocr_struct &p_ocr_config);
 
 /*!
           resize image to specified size.
-          \param  frame_box    The image needs to be processed.
-          \param  dest_height    The height of destination image.
-          \param  dest_width    The width of destination image.
+          \param  p_frame_box    The image needs to be processed.
+          \param  p_dst_height    The height of destination image.
+          \param  p_dst_width    The width of destination image.
         */
-void resize_image(_Inout_ cv::Mat &frame_box, _In_ int dest_height = -1,
-                  _In_ int dest_width = -1);
+void resize_image(_Inout_ cv::Mat &p_frame_box, _In_ int p_dst_height = -1,
+                  _In_ int p_dst_width = -1);
 
 /*!
         The initial_filtering function prepares the input image for processing.
-        \param  frame_box     The image needs to be processed.
-        \param  ocr_config    The necessary configurations for processing
+        \param  p_frame_box     The image needs to be processed.
+        \param  p_ocr_config    The necessary configurations for processing
    optical characters.
         */
-void threshold_image(_Inout_ cv::Mat &frame_box,
-                     _In_ config_for_ocr_struct &ocr_config);
+void threshold_image(_Inout_ cv::Mat &p_frame_box,
+                     _In_ config_for_ocr_struct &p_ocr_config);
 
 }  // namespace wolf::ml::ocr

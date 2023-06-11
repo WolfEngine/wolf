@@ -164,11 +164,11 @@ public:
   /*!
           The function concatenates the separated alphabet of the team name.
 
-          \param result A vector of alphabets.
+          \param p_result A vector of alphabets.
           \return return the whole word of the team name.
   */
   w_ocr_engine::character_and_center concatenate_name_result(
-      std::vector<w_ocr_engine::character_and_center> &result);
+      std::vector<w_ocr_engine::character_and_center> &p_result);
 
   /*!
           The function updates the vector of voting.
@@ -177,22 +177,24 @@ public:
      the voting value would be incremented. Otherwise, a new variable would be
      added to the vector.
 
-          \param the_character the input string and the related information
-     related to the string. \param the_vector vector of string with theirs
-     repetition number. \return is the string in the vector?
+          \param p_the_character the input string and the related information
+            related to the string.
+          \param p_the_vector vector of string with theirs
+            repetition number.
+          \return is the string in the vector?
   */
   W_API bool if_the_string_is_in_the_vector(
-      w_ocr_engine::character_and_center the_character,
-      std::vector<vote_over_string_vector> &the_vector);
+      w_ocr_engine::character_and_center p_the_character,
+      std::vector<vote_over_string_vector> &p_the_vector);
 
   /*!
           The voting function.
 
-          \param voted_results The voted results.
-          \param all_results All results.
+          \param p_voted_results The voted results.
+          \param p_all_results All results.
   */
   W_API void
-  voting_over_results_and_names(frame_result_struct &voted_results,
-                                std::vector<frame_result_struct> &all_results);
+  voting_over_results_and_names(frame_result_struct &p_voted_results,
+                                std::vector<frame_result_struct> &p_all_results);
 };
 } // namespace wolf::ml::ocr

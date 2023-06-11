@@ -18,8 +18,8 @@ nostd::shared_ptr<trace::Tracer> get_tracer() {
 
 using w_read_video_frames = wolf::ml::w_read_video_frames;
 
-w_read_video_frames::w_read_video_frames(std::string video_path) {
-  path = video_path;
+w_read_video_frames::w_read_video_frames(std::string p_video_path) {
+  path = p_video_path;
 
   cap = cv::VideoCapture(path.c_str(), cv::CAP_ANY);
   if (!cap.isOpened()) {
@@ -38,7 +38,7 @@ cv::Mat w_read_video_frames::read_video_frame_by_frame() {
   return frame;
 }
 
-void w_read_video_frames::write_image_to_video(std::string out_video_path) {
+void w_read_video_frames::write_image_to_video(std::string p_out_video_path) {
 #ifdef __TELEMETRY
   auto scoped_span =
       trace::Scope(get_tracer()->StartSpan("write_image_to_video"));
@@ -55,7 +55,7 @@ void w_read_video_frames::write_image_to_video(std::string out_video_path) {
 
   // Define the codec and create VideoWriter object.The output is stored in
   // 'outcpp.avi' file.
-  cv::VideoWriter video(out_video_path,
+  cv::VideoWriter video(p_out_video_path,
                         cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 60.0,
                         cv::Size(frame_width, frame_height));
 
@@ -77,8 +77,8 @@ void w_read_video_frames::write_image_to_video(std::string out_video_path) {
 
 void w_read_video_frames::release() { cap.release(); }
 
-cv::Mat w_read_video_frames::read_specific_frame(int input_frame_number) {
-  frame_number = input_frame_number;
+cv::Mat w_read_video_frames::read_specific_frame(int p_input_frame_number) {
+  frame_number = p_input_frame_number;
 
   cv::Mat frame;
   if (frame_number > int(frame_count)) {

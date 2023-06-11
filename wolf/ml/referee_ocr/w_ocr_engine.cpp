@@ -55,26 +55,26 @@ w_ocr_engine::~w_ocr_engine() {
   word_api->End();
 }
 
-bool w_ocr_engine::check_if_overlapped(_In_ cv::Rect box_1, _In_ cv::Rect box_2,
-                                       _In_ config_for_ocr_struct &ocr_config) {
+bool w_ocr_engine::check_if_overlapped(_In_ cv::Rect p_box_1, _In_ cv::Rect p_box_2,
+                                       _In_ config_for_ocr_struct &p_ocr_config) {
   bool if_overlapped = false;
   int area_1, area_2, overlapped_area;
 
-  int dx = std::min(box_1.x + box_1.width, box_2.x + box_2.width) -
-           std::max(box_1.x, box_2.x);
-  int dy = std::min(box_1.y + box_1.height, box_2.y + box_2.height) -
-           std::max(box_1.y, box_2.y);
+  int dx = std::min(p_box_1.x + p_box_1.width, p_box_2.x + p_box_2.width) -
+           std::max(p_box_1.x, p_box_2.x);
+  int dy = std::min(p_box_1.y + p_box_1.height, p_box_2.y + p_box_2.height) -
+           std::max(p_box_1.y, p_box_2.y);
 
   if (dx > 0 && dy > 0) {
-    area_1 = box_1.width * box_1.height;
-    area_2 = box_2.width * box_2.height;
+    area_1 = p_box_1.width * p_box_1.height;
+    area_2 = p_box_2.width * p_box_2.height;
 
     overlapped_area = dx * dy;
 
     if (double(overlapped_area) / double(area_1) >
-            ocr_config.overlapped_threshold ||
+            p_ocr_config.overlapped_threshold ||
         double(overlapped_area) / double(area_2) >
-            ocr_config.overlapped_threshold) {
+            p_ocr_config.overlapped_threshold) {
       if_overlapped = true;
     }
   }
@@ -84,25 +84,25 @@ bool w_ocr_engine::check_if_overlapped(_In_ cv::Rect box_1, _In_ cv::Rect box_2,
 
 // this function is related to cluster_char_structs function
 bool compare_char_by_x_position(
-    const w_ocr_engine::characters_struct &first_charactor,
-    const w_ocr_engine::characters_struct &second_charactor) {
-  return first_charactor.center.x < second_charactor.center.x;
+    const w_ocr_engine::characters_struct &p_first_charactor,
+    const w_ocr_engine::characters_struct &p_second_charactor) {
+  return p_first_charactor.center.x < p_second_charactor.center.x;
 }
 
 std::vector<w_ocr_engine::characters_struct>
 w_ocr_engine::contours_to_char_structs(
-    _In_ std::vector<std::vector<cv::Point>> contours) {
+    _In_ std::vector<std::vector<cv::Point>> p_contours) {
   std::vector<characters_struct> modified_contours;
-  size_t number_of_contours = contours.size();
+  size_t number_of_contours = p_contours.size();
 
   for (size_t i = 0; i < number_of_contours; i++) {
     std::vector<cv::Point> contour_poly;
     characters_struct temp_modified_contour;
-    temp_modified_contour.contour = contours[i];
+    temp_modified_contour.contour = p_contours[i];
 
     double epsilon = 3;
     bool closed = true;
-    cv::approxPolyDP(cv::Mat(contours[i]), contour_poly, epsilon, closed);
+    cv::approxPolyDP(cv::Mat(p_contours[i]), contour_poly, epsilon, closed);
 
     temp_modified_contour.bound_rect = cv::boundingRect(cv::Mat(contour_poly));
 
@@ -122,61 +122,61 @@ w_ocr_engine::contours_to_char_structs(
 }
 
 void w_ocr_engine::enhance_contour_image_for_model(
-    _Inout_ cv::Mat &contour_image, _In_ config_for_ocr_struct &ocr_config) {
-  if (!(ocr_config.make_white_background || ocr_config.do_resize_contour)) {
+    _Inout_ cv::Mat &p_contour_image, _In_ config_for_ocr_struct &p_ocr_config) {
+  if (!(p_ocr_config.make_white_background || p_ocr_config.do_resize_contour)) {
     return;
   }
 
-  if (ocr_config.make_white_background) {
-    make_contour_white_background(contour_image, ocr_config);
+  if (p_ocr_config.make_white_background) {
+    make_contour_white_background(p_contour_image, p_ocr_config);
   }
 
-  if (ocr_config.do_resize_contour) {
+  if (p_ocr_config.do_resize_contour) {
     // float resize_fraction =
-    // float(ocr_config.desired_contour_height)/float(height);
-    int dist_height = ocr_config.desired_contour_height;
+    // float(p_ocr_config.desired_contour_height)/float(height);
+    int dist_height = p_ocr_config.desired_contour_height;
     int dist_width = 24; // int(resize_fraction*width);
 
-    cv::resize(contour_image, contour_image, cv::Size(dist_width, dist_height),
+    cv::resize(p_contour_image, p_contour_image, cv::Size(dist_width, dist_height),
                0.0, 0.0, cv::InterpolationFlags::INTER_AREA);
   }
 
   return;
 }
 
-double w_ocr_engine::euclidean_distance(characters_struct &first_character,
-                                        characters_struct &second_character) {
+double w_ocr_engine::euclidean_distance(characters_struct &p_first_character,
+                                        characters_struct &p_second_character) {
   double dist_x = std::pow(
-      float(first_character.center.x - second_character.center.x), 2.0);
+      float(p_first_character.center.x - p_second_character.center.x), 2.0);
   double dist_y = std::pow(
-      float(first_character.center.y - second_character.center.y), 2.0);
+      float(p_first_character.center.y - p_second_character.center.y), 2.0);
   double dist = std::pow(dist_x + dist_y, 0.5);
 
   return dist;
 }
 
-double w_ocr_engine::euclidean_distance(int x1, int x2, int y1, int y2)
+double w_ocr_engine::euclidean_distance(int p_x1, int p_x2, int p_y1, int p_y2)
 {
-  double dist_x = std::pow(float(x1 - x2), 2.0);
-  double dist_y = std::pow(float(y1 - y2), 2.0);
+  double dist_x = std::pow(float(p_x1 - p_x2), 2.0);
+  double dist_y = std::pow(float(p_y1 - p_y2), 2.0);
   double dist = std::pow(dist_x + dist_y, 0.5);
 
   return dist;
 }
 
-std::string w_ocr_engine::spaces_between_two_chars(characters_struct left_char,
-                                            characters_struct right_char,
-                                            float height_to_dist_ratio)
+std::string w_ocr_engine::spaces_between_two_chars(characters_struct p_left_char,
+                                            characters_struct p_right_char,
+                                            float p_height_to_dist_ratio)
 {
   std::string temp_spaces = "";
 
-  int left_char_right_corner =
-      left_char.bound_rect.x + left_char.bound_rect.width;
-  int right_char_left_corner = right_char.bound_rect.x;
+  int p_left_char_right_corner =
+      p_left_char.bound_rect.x + p_left_char.bound_rect.width;
+  int p_right_char_left_corner = p_right_char.bound_rect.x;
 
-  if (right_char_left_corner - left_char_right_corner > 0) {
-    if (float(right_char_left_corner - left_char_right_corner) >
-        float(left_char.bound_rect.height) * height_to_dist_ratio) {
+  if (p_right_char_left_corner - p_left_char_right_corner > 0) {
+    if (float(p_right_char_left_corner - p_left_char_right_corner) >
+        float(p_left_char.bound_rect.height) * p_height_to_dist_ratio) {
       temp_spaces = "  ";
     } else {
       temp_spaces = " ";
@@ -188,24 +188,24 @@ std::string w_ocr_engine::spaces_between_two_chars(characters_struct left_char,
 
 std::vector<w_ocr_engine::character_and_center>
 w_ocr_engine::char_clusters_to_text(
-    std::vector<std::vector<characters_struct>> clustered_characters) {
+    std::vector<std::vector<characters_struct>> p_clustered_characters) {
   std::vector<w_ocr_engine::character_and_center> words;
 
-  for (size_t i = 0; i < clustered_characters.size(); i++) {
-    std::sort(clustered_characters[i].begin(), clustered_characters[i].end());
+  for (size_t i = 0; i < p_clustered_characters.size(); i++) {
+    std::sort(p_clustered_characters[i].begin(), p_clustered_characters[i].end());
     character_and_center temp;
-    temp.center = clustered_characters[i][0].center;
+    temp.center = p_clustered_characters[i][0].center;
 
     std::string spaces = "";
     float height_to_dist_ratio =
         get_env_float("SOCCER_GLOBAL_HEIGHT_TO_DIST_RATIO");
 
-    for (size_t j = 0; j < clustered_characters[i].size(); j++) {
+    for (size_t j = 0; j < p_clustered_characters[i].size(); j++) {
       std::string temp_string =
-          split_string(clustered_characters[i][j].text, '\n')[0];
-      if (j < clustered_characters[i].size() - 1) {
-        spaces = spaces_between_two_chars(clustered_characters[i][j],
-                                          clustered_characters[i][j + 1],
+          split_string(p_clustered_characters[i][j].text, '\n')[0];
+      if (j < p_clustered_characters[i].size() - 1) {
+        spaces = spaces_between_two_chars(p_clustered_characters[i][j],
+                                          p_clustered_characters[i][j + 1],
                                           height_to_dist_ratio);
       }
       temp_string += spaces;
@@ -218,7 +218,7 @@ w_ocr_engine::char_clusters_to_text(
     words.push_back(temp);
   }
 
-  clustered_characters.clear();
+  p_clustered_characters.clear();
 
   std::sort(words.begin(), words.end());
   return words;
@@ -226,31 +226,31 @@ w_ocr_engine::char_clusters_to_text(
 
 std::vector<w_ocr_engine::characters_struct>
 w_ocr_engine::filter_chars_by_contour_size(
-    _Inout_ std::vector<characters_struct> &character,
-    _In_ config_for_ocr_struct &ocr_config) {
+    _Inout_ std::vector<characters_struct> &p_character,
+    _In_ config_for_ocr_struct &p_ocr_config) {
   std::vector<characters_struct> filtered_characters;
-  for (int i = 0; i < character.size(); i++) {
-    double area = cv::contourArea(character[i].contour);
-    if (area < ocr_config.restrictions.min_area ||
-        area > ocr_config.restrictions.max_area) {
+  for (int i = 0; i < p_character.size(); i++) {
+    double area = cv::contourArea(p_character[i].contour);
+    if (area < p_ocr_config.restrictions.min_area ||
+        area > p_ocr_config.restrictions.max_area) {
       continue;
     }
-    if (character[i].bound_rect.height < ocr_config.restrictions.min_height ||
-        character[i].bound_rect.height > ocr_config.restrictions.max_height ||
-        character[i].bound_rect.width < ocr_config.restrictions.min_width ||
-        character[i].bound_rect.width > ocr_config.restrictions.max_width) {
+    if (p_character[i].bound_rect.height < p_ocr_config.restrictions.min_height ||
+        p_character[i].bound_rect.height > p_ocr_config.restrictions.max_height ||
+        p_character[i].bound_rect.width < p_ocr_config.restrictions.min_width ||
+        p_character[i].bound_rect.width > p_ocr_config.restrictions.max_width) {
       continue;
     }
-    filtered_characters.push_back(character[i]);
+    filtered_characters.push_back(p_character[i]);
   }
   return filtered_characters;
 }
 
 std::vector<w_ocr_engine::characters_struct>
-w_ocr_engine::image_to_char_structs(_In_ cv::Mat &image_box,
-                                    _In_ config_for_ocr_struct &ocr_config) {
+w_ocr_engine::image_to_char_structs(_In_ cv::Mat &p_image_box,
+                                    _In_ config_for_ocr_struct &p_ocr_config) {
   cv::Mat filtered_image =
-      prepare_image_for_contour_detection(image_box, ocr_config);
+      prepare_image_for_contour_detection(p_image_box, p_ocr_config);
 
   std::vector<std::vector<cv::Point>> contours =
       find_all_countors(filtered_image);
@@ -258,29 +258,29 @@ w_ocr_engine::image_to_char_structs(_In_ cv::Mat &image_box,
       contours_to_char_structs(contours);
 
   std::vector<characters_struct> filtered_characters =
-      filter_chars_by_contour_size(characters, ocr_config);
+      filter_chars_by_contour_size(characters, p_ocr_config);
 
-  merge_overlapped_contours(filtered_characters, ocr_config);
+  merge_overlapped_contours(filtered_characters, p_ocr_config);
 
   for (size_t i = 0; i < filtered_characters.size(); i++) {
-    margin_bounding_rect(filtered_characters[i].bound_rect, ocr_config.margin,
+    margin_bounding_rect(filtered_characters[i].bound_rect, p_ocr_config.margin,
                          filtered_image);
   }
 
   // TODO add this log "This code has not been optimized for color image, yet"
-  // << std::endl;
   return filtered_characters;
 }
 
 std::vector<w_ocr_engine::character_and_center> w_ocr_engine::char_vec_to_string(
-    _In_ std::vector<w_ocr_engine::characters_struct> char_vector,
-    _In_ cv::Mat &frame, _In_ config_for_ocr_struct &ocr_config)
+    _In_ std::vector<w_ocr_engine::characters_struct> p_char_vector,
+    _In_ cv::Mat &p_frame,
+    _In_ config_for_ocr_struct &p_ocr_config)
 {
   std::vector<w_ocr_engine::characters_struct> labeled_characters =
-      label_chars_in_char_structs(char_vector, frame, ocr_config);
+      label_chars_in_char_structs(p_char_vector, p_frame, p_ocr_config);
   std::vector<std::vector<w_ocr_engine::characters_struct>>
       clustered_characters =
-          cluster_char_structs(labeled_characters, ocr_config);
+          cluster_char_structs(labeled_characters, p_ocr_config);
   std::vector<w_ocr_engine::character_and_center> string =
       char_clusters_to_text(clustered_characters);
 
@@ -289,13 +289,13 @@ std::vector<w_ocr_engine::character_and_center> w_ocr_engine::char_vec_to_string
 
 std::vector<w_ocr_engine::character_and_center>
 w_ocr_engine::image_to_string(_In_ cv::Mat &image,
-                              _In_ config_for_ocr_struct &ocr_config) {
+                              _In_ config_for_ocr_struct &p_ocr_config) {
   std::vector<characters_struct> characters =
-      image_to_char_structs(image, ocr_config);
+      image_to_char_structs(image, p_ocr_config);
   std::vector<characters_struct> labeled_characters =
-      label_chars_in_char_structs(characters, image, ocr_config);
+      label_chars_in_char_structs(characters, image, p_ocr_config);
   std::vector<std::vector<characters_struct>> clustered_characters =
-      cluster_char_structs(labeled_characters, ocr_config);
+      cluster_char_structs(labeled_characters, p_ocr_config);
   std::vector<character_and_center> string =
       char_clusters_to_text(clustered_characters);
 
@@ -304,38 +304,38 @@ w_ocr_engine::image_to_string(_In_ cv::Mat &image,
 
 std::vector<w_ocr_engine::characters_struct>
 w_ocr_engine::label_chars_in_char_structs(
-    _In_ std::vector<w_ocr_engine::characters_struct> &characters,
-    _In_ cv::Mat &image_box, _In_ config_for_ocr_struct &ocr_config) {
+    _In_ std::vector<w_ocr_engine::characters_struct> &p_characters,
+    _In_ cv::Mat &p_image_box, _In_ config_for_ocr_struct &p_ocr_config) {
   std::vector<characters_struct> labeled_chars;
   tesseract::TessBaseAPI *tess_api;
-  if (ocr_config.is_digit) {
+  if (p_ocr_config.is_digit) {
     tess_api = digit_api;
   } else {
     tess_api = word_api;
   }
 
-  for (size_t i = 0; i < characters.size(); i++) {
+  for (size_t i = 0; i < p_characters.size(); i++) {
     cv::Mat temp_contour_image;
     cv::Mat contour_image;
     // Sometimes it is better to use the original image for w_ocr_engine
-    if (ocr_config.binary) {
+    if (p_ocr_config.binary) {
       cv::Mat filtered_image =
-          prepare_image_for_contour_detection(image_box, ocr_config);
-      filtered_image(characters[i].bound_rect).copyTo(contour_image);
+          prepare_image_for_contour_detection(p_image_box, p_ocr_config);
+      filtered_image(p_characters[i].bound_rect).copyTo(contour_image);
     } else {
       // original_image(modified_bounding_rects[i].bound_rect).copyTo(contour_image);
-      contour_image = mask_contour(image_box, characters[i]);
+      contour_image = mask_contour(p_image_box, p_characters[i]);
     }
 
-    if (ocr_config.is_white) {
+    if (p_ocr_config.is_white) {
       negative_image(contour_image);
     }
 
-    if (ocr_config.verbose) {
+    if (p_ocr_config.verbose) {
       temp_contour_image = contour_image.clone();
     }
 
-    enhance_contour_image_for_model(contour_image, ocr_config);
+    enhance_contour_image_for_model(contour_image, p_ocr_config);
     tess_api->SetImage(contour_image.data, contour_image.cols,
                        contour_image.rows, 3, int(contour_image.step));
 
@@ -343,7 +343,7 @@ w_ocr_engine::label_chars_in_char_structs(
 
     if (std::strcmp(text_data.c_str(), "") != 0) {
       characters_struct temp_character;
-      temp_character = characters[i];
+      temp_character = p_characters[i];
       temp_character.text = split_string(text_data, '\n')[0];
 
       if (!temp_character.text.empty()) {
@@ -358,56 +358,51 @@ w_ocr_engine::label_chars_in_char_structs(
   return labeled_chars;
 }
 
-void w_ocr_engine::margin_bounding_rect(_Inout_ cv::Rect &bounding_rect,
-                                        _In_ int margin,
-                                        _In_ cv::Mat &filtered_image) {
-  int height = filtered_image.rows;
-  int width = filtered_image.cols;
+void w_ocr_engine::margin_bounding_rect(_Inout_ cv::Rect &p_bounding_rect,
+                                        _In_ int p_margin,
+                                        _In_ cv::Mat &p_filtered_image) {
+  int height = p_filtered_image.rows;
+  int width = p_filtered_image.cols;
   int temp;
-  int temp_margin_width = int(std::ceil(float(margin) / 2));
-  int temp_margin_height = int(std::ceil(float(margin) / 2));
+  int temp_margin_width = int(std::ceil(float(p_margin) / 2));
+  int temp_margin_height = int(std::ceil(float(p_margin) / 2));
 
-  if (bounding_rect.width < 1 && margin > 0) {
+  if (p_bounding_rect.width < 1 && p_margin > 0) {
     temp_margin_width = 2;
   }
 
-  if (bounding_rect.width < bounding_rect.height / 5) {
-    // temp = (bounding_rect.x - 1 * bounding_rect.width);
-    // bounding_rect.x = temp > 0 ? temp : 0;
-    // temp = (bounding_rect.x + 4 * bounding_rect.width);
-    // bounding_rect.width = temp < width ? 4 * bounding_rect.width : (width -
-    // bounding_rect.x - 1);
-    temp = (bounding_rect.x - 1 * bounding_rect.height / 6);
-    bounding_rect.x = temp > 0 ? temp : 0;
-    temp = (bounding_rect.x + bounding_rect.height);
-    bounding_rect.width =
-        temp < width ? bounding_rect.height / 2 : (width - bounding_rect.x - 1);
+  if (p_bounding_rect.width < p_bounding_rect.height / 5) {
+    temp = (p_bounding_rect.x - 1 * p_bounding_rect.height / 6);
+    p_bounding_rect.x = temp > 0 ? temp : 0;
+    temp = (p_bounding_rect.x + p_bounding_rect.height);
+    p_bounding_rect.width =
+        temp < width ? p_bounding_rect.height / 2 : (width - p_bounding_rect.x - 1);
   } else {
-    temp = (bounding_rect.x - temp_margin_width);
-    bounding_rect.x = temp > 0 ? temp : 0;
-    temp = (bounding_rect.x + bounding_rect.width + 3 * temp_margin_width);
-    bounding_rect.width = temp < width
-                              ? bounding_rect.width + 3 * temp_margin_width
-                              : (width - bounding_rect.x - 1);
+    temp = (p_bounding_rect.x - temp_margin_width);
+    p_bounding_rect.x = temp > 0 ? temp : 0;
+    temp = (p_bounding_rect.x + p_bounding_rect.width + 3 * temp_margin_width);
+    p_bounding_rect.width = temp < width
+                              ? p_bounding_rect.width + 3 * temp_margin_width
+                              : (width - p_bounding_rect.x - 1);
   }
 
-  temp = (bounding_rect.y - temp_margin_height);
-  bounding_rect.y = temp > 0 ? temp : 0;
-  temp = (bounding_rect.y + bounding_rect.height + 2 * temp_margin_height);
-  bounding_rect.height = temp < height
-                             ? bounding_rect.height + 2 * temp_margin_height
-                             : (height - bounding_rect.y - 1);
+  temp = (p_bounding_rect.y - temp_margin_height);
+  p_bounding_rect.y = temp > 0 ? temp : 0;
+  temp = (p_bounding_rect.y + p_bounding_rect.height + 2 * temp_margin_height);
+  p_bounding_rect.height = temp < height
+                             ? p_bounding_rect.height + 2 * temp_margin_height
+                             : (height - p_bounding_rect.y - 1);
 }
 
-cv::Mat w_ocr_engine::mask_contour(_In_ cv::Mat &image,
-                                   _In_ characters_struct &contour_info) {
+cv::Mat w_ocr_engine::mask_contour(_In_ cv::Mat &p_image,
+                                   _In_ characters_struct &p_contour_info) {
   cv::Mat temp_plane_image =
-      cv::Mat(cv::Size(image.cols, image.rows), CV_8UC1, cv::Scalar(0));
+      cv::Mat(cv::Size(p_image.cols, p_image.rows), CV_8UC1, cv::Scalar(0));
   cv::Mat mask_image;
   cv::Mat contour_image;
 
   std::vector<std::vector<cv::Point>> temp_contours;
-  temp_contours.push_back(contour_info.contour);
+  temp_contours.push_back(p_contour_info.contour);
   std::vector<std::vector<cv::Point>> hull(temp_contours.size());
   for (unsigned int i = 0, n = temp_contours.size(); i < n; ++i) {
     cv::convexHull(cv::Mat(temp_contours[i]), hull[i], false);
@@ -415,8 +410,8 @@ cv::Mat w_ocr_engine::mask_contour(_In_ cv::Mat &image,
   cv::drawContours(temp_plane_image, temp_contours, 0, cv::Scalar(255), 3);
   cv::fillPoly(temp_plane_image, temp_contours, cv::Scalar(255));
 
-  temp_plane_image(contour_info.bound_rect).copyTo(mask_image);
-  image(contour_info.bound_rect).copyTo(contour_image, mask_image);
+  temp_plane_image(p_contour_info.bound_rect).copyTo(mask_image);
+  p_image(p_contour_info.bound_rect).copyTo(contour_image, mask_image);
 
   temp_plane_image.release();
   mask_image.release();
@@ -424,15 +419,15 @@ cv::Mat w_ocr_engine::mask_contour(_In_ cv::Mat &image,
 }
 
 void w_ocr_engine::merge_overlapped_contours(
-    _Inout_ std::vector<characters_struct> &character,
-    _In_ config_for_ocr_struct &ocr_config) {
+    _Inout_ std::vector<characters_struct> &p_character,
+    _In_ config_for_ocr_struct &p_ocr_config) {
   cv::Rect ref_box;
   int index;
   std::vector<int> overlapped_boxes_index;
   // int width, height;
 
   bool flag;
-  if (character.size() > 0) {
+  if (p_character.size() > 0) {
     flag = true;
   } else {
     flag = false;
@@ -440,42 +435,42 @@ void w_ocr_engine::merge_overlapped_contours(
 
   index = 0;
   while (flag) {
-    ref_box = character[index].bound_rect;
+    ref_box = p_character[index].bound_rect;
 
     overlapped_boxes_index.clear();
-    for (int i = 0; i < character.size(); i++) {
+    for (int i = 0; i < p_character.size(); i++) {
       if (i == index) {
         continue;
       }
-      if (check_if_overlapped(ref_box, character[i].bound_rect, ocr_config)) {
+      if (check_if_overlapped(ref_box, p_character[i].bound_rect, p_ocr_config)) {
         overlapped_boxes_index.push_back(i);
       }
     }
 
     for (int j = overlapped_boxes_index.size() - 1; j >= 0; j--) {
-      character[index].bound_rect.x =
-          std::min(character[index].bound_rect.x,
-                   character[overlapped_boxes_index[j]].bound_rect.x);
-      character[index].bound_rect.y =
-          std::min(character[index].bound_rect.y,
-                   character[overlapped_boxes_index[j]].bound_rect.y);
-      character[index].bound_rect.width =
-          std::max(character[index].bound_rect.x +
-                       character[index].bound_rect.width,
-                   character[overlapped_boxes_index[j]].bound_rect.x +
-                       character[overlapped_boxes_index[j]].bound_rect.width) -
-          character[index].bound_rect.x;
-      character[index].bound_rect.height =
-          std::max(character[index].bound_rect.y +
-                       character[index].bound_rect.height,
-                   character[overlapped_boxes_index[j]].bound_rect.y +
-                       character[overlapped_boxes_index[j]].bound_rect.height) -
-          character[index].bound_rect.y;
-      character.erase(character.begin() + int(overlapped_boxes_index[j]));
+      p_character[index].bound_rect.x =
+          std::min(p_character[index].bound_rect.x,
+                   p_character[overlapped_boxes_index[j]].bound_rect.x);
+      p_character[index].bound_rect.y =
+          std::min(p_character[index].bound_rect.y,
+                   p_character[overlapped_boxes_index[j]].bound_rect.y);
+      p_character[index].bound_rect.width =
+          std::max(p_character[index].bound_rect.x +
+                       p_character[index].bound_rect.width,
+                   p_character[overlapped_boxes_index[j]].bound_rect.x +
+                       p_character[overlapped_boxes_index[j]].bound_rect.width) -
+          p_character[index].bound_rect.x;
+      p_character[index].bound_rect.height =
+          std::max(p_character[index].bound_rect.y +
+                       p_character[index].bound_rect.height,
+                   p_character[overlapped_boxes_index[j]].bound_rect.y +
+                       p_character[overlapped_boxes_index[j]].bound_rect.height) -
+          p_character[index].bound_rect.y;
+      p_character.erase(p_character.begin() + int(overlapped_boxes_index[j]));
     }
 
     overlapped_boxes_index.clear();
-    if (index >= character.size() - 1) {
+    if (index >= p_character.size() - 1) {
       flag = false;
     }
 
@@ -485,11 +480,11 @@ void w_ocr_engine::merge_overlapped_contours(
 
 std::vector<std::vector<w_ocr_engine::characters_struct>>
 w_ocr_engine::cluster_char_structs(
-    std::vector<w_ocr_engine::characters_struct> characters,
-    config_for_ocr_struct &ocr_config) {
+    std::vector<w_ocr_engine::characters_struct> p_characters,
+    config_for_ocr_struct &p_ocr_config) {
   std::vector<std::vector<characters_struct>> clustered_characters;
 
-  if (characters.size() == 0) {
+  if (p_characters.size() == 0) {
     return clustered_characters;
   }
 
@@ -497,38 +492,35 @@ w_ocr_engine::cluster_char_structs(
   std::vector<size_t> temp_index_list;
   bool is_clustering;
 
-  temp_char_cluster.push_back(characters.back());
-  characters.pop_back();
+  temp_char_cluster.push_back(p_characters.back());
+  p_characters.pop_back();
 
-  if (characters.size() > 0) {
+  if (p_characters.size() > 0) {
     is_clustering = true;
 
     while (is_clustering) {
-      for (size_t index = 0; index < characters.size(); index++) {
+      for (size_t index = 0; index < p_characters.size(); index++) {
         for (size_t i = 0; i < temp_char_cluster.size(); i++) {
           if (~temp_char_cluster[i].processed) {
-            // double temp_dist = euclidean_distance(temp_char_cluster[i],
-            // characters[index]);
-
             double temp_dist_1 =
                 euclidean_distance(temp_char_cluster[i].bound_rect.x,
-                                   characters[index].bound_rect.x +
-                                       characters[index].bound_rect.width,
+                                   p_characters[index].bound_rect.x +
+                                       p_characters[index].bound_rect.width,
                                    temp_char_cluster[i].bound_rect.y +
                                        temp_char_cluster[i].bound_rect.height,
-                                   characters[index].bound_rect.y +
-                                       characters[index].bound_rect.height);
+                                   p_characters[index].bound_rect.y +
+                                       p_characters[index].bound_rect.height);
             double temp_dist_2 =
                 euclidean_distance(temp_char_cluster[i].bound_rect.x +
                                        temp_char_cluster[i].bound_rect.width,
-                                   characters[index].bound_rect.x,
+                                   p_characters[index].bound_rect.x,
                                    temp_char_cluster[i].bound_rect.y +
                                        temp_char_cluster[i].bound_rect.height,
-                                   characters[index].bound_rect.y +
-                                       characters[index].bound_rect.height);
+                                   p_characters[index].bound_rect.y +
+                                       p_characters[index].bound_rect.height);
 
             int temp_y_dist = std::abs(temp_char_cluster[i].bound_rect.y -
-                                       characters[index].bound_rect.y);
+                                       p_characters[index].bound_rect.y);
 
             if ((temp_dist_1 < 0.8 * double(temp_char_cluster[i].height) ||
                  temp_dist_2 < 0.8 * double(temp_char_cluster[i].height)) &&
@@ -548,11 +540,11 @@ w_ocr_engine::cluster_char_structs(
         std::reverse(temp_index_list.begin(), temp_index_list.end());
 
         for (size_t i = 0; i < temp_index_list.size(); i++) {
-          temp_char_cluster.push_back(characters[temp_index_list[i]]);
-          characters.erase(characters.begin() + int(temp_index_list[i]));
+          temp_char_cluster.push_back(p_characters[temp_index_list[i]]);
+          p_characters.erase(p_characters.begin() + int(temp_index_list[i]));
         }
 
-        if (characters.size() == 0) {
+        if (p_characters.size() == 0) {
           clustered_characters.push_back(temp_char_cluster);
           temp_char_cluster.clear();
         }
@@ -560,15 +552,15 @@ w_ocr_engine::cluster_char_structs(
         clustered_characters.push_back(temp_char_cluster);
         temp_char_cluster.clear();
 
-        temp_char_cluster.push_back(characters.back());
-        characters.pop_back();
-        if (characters.size() == 0) {
+        temp_char_cluster.push_back(p_characters.back());
+        p_characters.pop_back();
+        if (p_characters.size() == 0) {
           clustered_characters.push_back(temp_char_cluster);
           temp_char_cluster.clear();
         }
       }
 
-      if (characters.size() == 0) {
+      if (p_characters.size() == 0) {
         is_clustering = false;
       }
 
@@ -582,43 +574,43 @@ w_ocr_engine::cluster_char_structs(
   return clustered_characters;
 }
 
-cv::Mat w_ocr_engine::show_in_better_way(cv::Mat &input_image,
-                                         int out_put_image_height,
-                                         float resize_factor) {
-  int height = out_put_image_height;
+cv::Mat w_ocr_engine::show_in_better_way(cv::Mat &p_input_image,
+                                         int p_out_put_image_height,
+                                         float p_resize_factor) {
+  int height = p_out_put_image_height;
   int width = height * 4 / 3;
   cv::Mat temp_image;
-  if (resize_factor * input_image.rows > height) {
-    resize_factor = float(height / input_image.rows);
+  if (p_resize_factor * p_input_image.rows > height) {
+    p_resize_factor = float(height / p_input_image.rows);
   }
-  if (resize_factor * input_image.cols > width) {
-    resize_factor = float(width / input_image.cols);
+  if (p_resize_factor * p_input_image.cols > width) {
+    p_resize_factor = float(width / p_input_image.cols);
   }
-  if (input_image.channels() == 3) {
+  if (p_input_image.channels() == 3) {
     temp_image = cv::Mat(cv::Size(width, height), CV_8UC3, cv::Scalar(0, 0, 0));
   } else {
     temp_image = cv::Mat(cv::Size(width, height), CV_8UC1, cv::Scalar(0));
   }
 
-  cv::Mat temp_contour = input_image.clone();
+  cv::Mat temp_contour = p_input_image.clone();
   cv::resize(temp_contour, temp_contour,
-             cv::Size(input_image.cols * resize_factor,
-                      input_image.rows * resize_factor));
+             cv::Size(p_input_image.cols * p_resize_factor,
+                      p_input_image.rows * p_resize_factor));
   temp_contour.copyTo(
-      temp_image(cv::Rect(0, 0, input_image.cols * resize_factor,
-                          input_image.rows * resize_factor)));
+      temp_image(cv::Rect(0, 0, p_input_image.cols * p_resize_factor,
+                          p_input_image.rows * p_resize_factor)));
 
   temp_contour.release();
   return temp_image;
 }
 
-std::vector<std::string> w_ocr_engine::split_string(std::string input_string,
-                                                    char reference) {
-  std::stringstream test(input_string);
+std::vector<std::string> w_ocr_engine::split_string(std::string p_input_string,
+                                                    char p_reference) {
+  std::stringstream test(p_input_string);
   std::string segment;
   std::vector<std::string> seglist;
 
-  while (std::getline(test, segment, reference)) {
+  while (std::getline(test, segment, p_reference)) {
     seglist.push_back(segment);
   }
 
@@ -626,20 +618,20 @@ std::vector<std::string> w_ocr_engine::split_string(std::string input_string,
 }
 
 bool w_ocr_engine::same_height(
-    _In_ std::vector<characters_struct> pClusteredChars) {
+    _In_ std::vector<characters_struct> p_clustered_chars) {
   bool result = true;
   int average_height = 0;
 
-  for (int i = 0; i < pClusteredChars.size(); i++) {
-    average_height += pClusteredChars[i].height;
+  for (int i = 0; i < p_clustered_chars.size(); i++) {
+    average_height += p_clustered_chars[i].height;
   }
-  average_height /= pClusteredChars.size();
+  average_height /= p_clustered_chars.size();
   int min_height = average_height - average_height / 5;
   int max_height = average_height + average_height / 5;
 
-  for (int i = 0; i < pClusteredChars.size(); i++) {
-    if (pClusteredChars[i].height > max_height ||
-        pClusteredChars[i].height < min_height) {
+  for (int i = 0; i < p_clustered_chars.size(); i++) {
+    if (p_clustered_chars[i].height > max_height ||
+        p_clustered_chars[i].height < min_height) {
       result = false;
     }
   }
@@ -648,25 +640,25 @@ bool w_ocr_engine::same_height(
 }
 
 bool w_ocr_engine::same_level(
-    _In_ std::vector<characters_struct> pClusteredChars) {
+    _In_ std::vector<characters_struct> p_clustered_chars) {
   bool result = true;
   int average_height = 0;
   int average_level = 0;
 
-  for (int i = 0; i < pClusteredChars.size(); i++) {
-    average_height += pClusteredChars[i].height;
+  for (int i = 0; i < p_clustered_chars.size(); i++) {
+    average_height += p_clustered_chars[i].height;
     average_level +=
-        pClusteredChars[i].bound_rect.y + pClusteredChars[i].bound_rect.height;
+        p_clustered_chars[i].bound_rect.y + p_clustered_chars[i].bound_rect.height;
   }
-  average_height /= pClusteredChars.size();
-  average_level /= pClusteredChars.size();
+  average_height /= p_clustered_chars.size();
+  average_level /= p_clustered_chars.size();
   int min_level = average_level - average_height / 10;
   int max_level = average_level + average_height / 10;
 
-  for (int i = 0; i < pClusteredChars.size(); i++) {
-    if (pClusteredChars[i].bound_rect.y + pClusteredChars[i].bound_rect.height >
+  for (int i = 0; i < p_clustered_chars.size(); i++) {
+    if (p_clustered_chars[i].bound_rect.y + p_clustered_chars[i].bound_rect.height >
             max_level ||
-        pClusteredChars[i].bound_rect.y + pClusteredChars[i].bound_rect.height <
+        p_clustered_chars[i].bound_rect.y + p_clustered_chars[i].bound_rect.height <
             min_level) {
       result = false;
     }
@@ -676,25 +668,25 @@ bool w_ocr_engine::same_level(
 }
 
 void w_ocr_engine::show_contours(
-    _Inout_ cv::Mat &pImage,
-    _In_ std::vector<characters_struct> pClusteredChars,
-    _In_ std::string pWindowName, _In_ bool pShow)
+    _Inout_ cv::Mat &p_image,
+    _In_ std::vector<characters_struct> p_clustered_chars,
+    _In_ std::string p_window_name, _In_ bool p_show)
 {
   cv::Mat mask_image;
 
-  for (int i = 0; i < pClusteredChars.size(); i++) {
+  for (int i = 0; i < p_clustered_chars.size(); i++) {
     std::vector<std::vector<cv::Point>> temp_contours;
-    temp_contours.push_back(pClusteredChars[i].contour);
+    temp_contours.push_back(p_clustered_chars[i].contour);
     std::vector<std::vector<cv::Point>> hull(temp_contours.size());
     for (unsigned int i = 0, n = temp_contours.size(); i < n; ++i) {
       cv::convexHull(cv::Mat(temp_contours[i]), hull[i], false);
     }
-    cv::drawContours(pImage, temp_contours, 0, cv::Scalar(255), 3);
-    cv::fillPoly(pImage, temp_contours, cv::Scalar(255));
+    cv::drawContours(p_image, temp_contours, 0, cv::Scalar(255), 3);
+    cv::fillPoly(p_image, temp_contours, cv::Scalar(255));
   }
 
-  if (pShow) {
-    cv::imshow(pWindowName, pImage);
+  if (p_show) {
+    cv::imshow(p_window_name, p_image);
     cv::waitKey();
   }
 
@@ -702,39 +694,39 @@ void w_ocr_engine::show_contours(
 }
 
 w_ocr_engine::cluster_features w_ocr_engine::fill_cluster_features(
-    _Inout_ std::vector<characters_struct> &pClusteredChar,
-    _In_ int pImageWidth, _In_ int pIndex) {
+    _Inout_ std::vector<characters_struct> &p_clustered_char,
+    _In_ int p_image_width, _In_ int p_index) {
   cluster_features features;
 
-  features.index_in_parent_vector = pIndex;
+  features.index_in_parent_vector = p_index;
 
-  features.min_x = pClusteredChar[0].bound_rect.x;
+  features.min_x = p_clustered_char[0].bound_rect.x;
   features.max_x =
-      pClusteredChar[0].bound_rect.x + pClusteredChar[0].bound_rect.width;
-  features.min_y = pClusteredChar[0].bound_rect.y;
-  features.average_y = pClusteredChar[0].bound_rect.y;
-  features.average_height = pClusteredChar[0].bound_rect.height;
+      p_clustered_char[0].bound_rect.x + p_clustered_char[0].bound_rect.width;
+  features.min_y = p_clustered_char[0].bound_rect.y;
+  features.average_y = p_clustered_char[0].bound_rect.y;
+  features.average_height = p_clustered_char[0].bound_rect.height;
 
-  for (int i = 1; i < pClusteredChar.size(); i++) {
-    features.min_x = (features.min_x > pClusteredChar[i].bound_rect.x)
-                         ? pClusteredChar[i].bound_rect.x
+  for (int i = 1; i < p_clustered_char.size(); i++) {
+    features.min_x = (features.min_x > p_clustered_char[i].bound_rect.x)
+                         ? p_clustered_char[i].bound_rect.x
                          : features.min_x;
-    features.max_x = (features.max_x > pClusteredChar[i].bound_rect.x +
-                                           pClusteredChar[i].bound_rect.width)
+    features.max_x = (features.max_x > p_clustered_char[i].bound_rect.x +
+                                           p_clustered_char[i].bound_rect.width)
                          ? features.max_x
-                         : pClusteredChar[i].bound_rect.x +
-                               pClusteredChar[i].bound_rect.width;
-    features.min_y = (features.min_y > pClusteredChar[i].bound_rect.y)
-                         ? pClusteredChar[i].bound_rect.y
+                         : p_clustered_char[i].bound_rect.x +
+                               p_clustered_char[i].bound_rect.width;
+    features.min_y = (features.min_y > p_clustered_char[i].bound_rect.y)
+                         ? p_clustered_char[i].bound_rect.y
                          : features.min_y;
-    features.average_y += pClusteredChar[0].bound_rect.y;
-    features.average_height += pClusteredChar[0].bound_rect.height;
+    features.average_y += p_clustered_char[0].bound_rect.y;
+    features.average_height += p_clustered_char[0].bound_rect.height;
   }
 
-  features.average_y /= pClusteredChar.size();
-  features.average_height /= pClusteredChar.size();
+  features.average_y /= p_clustered_char.size();
+  features.average_height /= p_clustered_char.size();
 
-  int mid = pImageWidth / 2;
+  int mid = p_image_width / 2;
   int temp1 = mid - features.min_x;
   int temp2 = mid - features.max_x;
 
@@ -763,39 +755,39 @@ w_ocr_engine::cluster_features w_ocr_engine::fill_cluster_features(
   return features;
 }
 
-bool w_ocr_engine::check_twin_clusters(_In_ cluster_features &pFirstInput,
-                                       _In_ cluster_features &pSecondInput,
-                                       _In_ float pThreshold) {
+bool w_ocr_engine::check_twin_clusters(_In_ cluster_features &p_first_input,
+                                       _In_ cluster_features &p_second_input,
+                                       _In_ float p_threshold) {
   bool result = false;
 
   float Y_diff_ration =
-      float(std::abs(pFirstInput.average_y - pSecondInput.average_y)) /
-      float((pFirstInput.average_height + pSecondInput.average_height) / 2);
+      float(std::abs(p_first_input.average_y - p_second_input.average_y)) /
+      float((p_first_input.average_height + p_second_input.average_height) / 2);
   float a, b, overlapped_ratio;
 
   float height_diff_ratio =
-      (pFirstInput.average_height > pSecondInput.average_height)
-          ? float(pFirstInput.average_height - pSecondInput.average_height) /
-                float(pFirstInput.average_height)
-          : float(pSecondInput.average_height - pFirstInput.average_height) /
-                float(pSecondInput.average_height);
+      (p_first_input.average_height > p_second_input.average_height)
+          ? float(p_first_input.average_height - p_second_input.average_height) /
+                float(p_first_input.average_height)
+          : float(p_second_input.average_height - p_first_input.average_height) /
+                float(p_second_input.average_height);
 
   if (Y_diff_ration < 0.05 && height_diff_ratio < 0.05) {
-    a = (pFirstInput.symmetric_x1 < pSecondInput.symmetric_x1)
-            ? float(pSecondInput.symmetric_x1)
-            : float(pFirstInput.symmetric_x1);
-    b = (pFirstInput.symmetric_x2 < pSecondInput.symmetric_x2)
-            ? float(pFirstInput.symmetric_x2)
-            : float(pSecondInput.symmetric_x2);
+    a = (p_first_input.symmetric_x1 < p_second_input.symmetric_x1)
+            ? float(p_second_input.symmetric_x1)
+            : float(p_first_input.symmetric_x1);
+    b = (p_first_input.symmetric_x2 < p_second_input.symmetric_x2)
+            ? float(p_first_input.symmetric_x2)
+            : float(p_second_input.symmetric_x2);
 
     overlapped_ratio =
-        (b - a) / float(pFirstInput.symmetric_x2 - pFirstInput.symmetric_x1);
+        (b - a) / float(p_first_input.symmetric_x2 - p_first_input.symmetric_x1);
     float temp =
-        (b - a) / float(pSecondInput.symmetric_x2 - pSecondInput.symmetric_x1);
+        (b - a) / float(p_second_input.symmetric_x2 - p_second_input.symmetric_x1);
 
     overlapped_ratio = (overlapped_ratio > temp) ? overlapped_ratio : temp;
 
-    if (overlapped_ratio > pThreshold) {
+    if (overlapped_ratio > p_threshold) {
       result = true;
     }
   }
@@ -804,14 +796,14 @@ bool w_ocr_engine::check_twin_clusters(_In_ cluster_features &pFirstInput,
 }
 
 void w_ocr_engine::keep_twins(
-    _Inout_ std::vector<std::vector<characters_struct>> &pClusteredChar,
-    _In_ int pImageWidth, _In_ int pImageHeight, _In_ bool pWord) {
+    _Inout_ std::vector<std::vector<characters_struct>> &p_clustered_char,
+    _In_ int p_image_width, _In_ int p_image_height, _In_ bool p_word) {
   std::vector<cluster_features> cluster_features_vector;
-  int n_cluster = pClusteredChar.size();
+  int n_cluster = p_clustered_char.size();
 
   for (int i = 0; i < n_cluster; i++) {
     cluster_features_vector.push_back(
-        fill_cluster_features(pClusteredChar[i], pImageWidth, i));
+        fill_cluster_features(p_clustered_char[i], p_image_width, i));
   }
 
   for (int i = 0; i < n_cluster - 1; i++) {
@@ -835,13 +827,13 @@ void w_ocr_engine::keep_twins(
     }
   }
 
-  if (pWord) {
+  if (p_word) {
     for (int i = 1; i < n_cluster; i++) {
       if (!cluster_features_vector[i].matched) {
         continue;
       }
 
-      if (cluster_features_vector[i].average_y > pImageHeight * 4 / 5) {
+      if (cluster_features_vector[i].average_y > p_image_height * 4 / 5) {
         cluster_features_vector[i].matched = false;
         cluster_features_vector[cluster_features_vector[i]
                                     .twin_index_in_parent_vector]
@@ -856,11 +848,11 @@ void w_ocr_engine::keep_twins(
         continue;
       }
       if (more == -1) {
-        more = pClusteredChar[i].size();
+        more = p_clustered_char[i].size();
       }
 
-      if (more < pClusteredChar[i].size()) {
-        more = pClusteredChar[i].size();
+      if (more < p_clustered_char[i].size()) {
+        more = p_clustered_char[i].size();
       }
     }
 
@@ -869,8 +861,8 @@ void w_ocr_engine::keep_twins(
         continue;
       }
 
-      if (more > pClusteredChar[i].size() &&
-          more > pClusteredChar[cluster_features_vector[i]
+      if (more > p_clustered_char[i].size() &&
+          more > p_clustered_char[cluster_features_vector[i]
                                     .twin_index_in_parent_vector]
                      .size()) {
         cluster_features_vector[i].matched = false;
@@ -920,7 +912,7 @@ void w_ocr_engine::keep_twins(
   for (int i = 0; i < n_cluster; i++) {
     int index = n_cluster - (i + 1);
     if (!cluster_features_vector[index].matched) {
-      pClusteredChar.erase(pClusteredChar.begin() + index);
+      p_clustered_char.erase(p_clustered_char.begin() + index);
     }
   }
 
@@ -928,31 +920,31 @@ void w_ocr_engine::keep_twins(
 }
 
 void w_ocr_engine::keep_time(
-    _Inout_ std::vector<std::vector<characters_struct>> &pClusteredChar) {
-  int n_cluster = pClusteredChar.size();
+    _Inout_ std::vector<std::vector<characters_struct>> &p_clustered_char) {
+  int n_cluster = p_clustered_char.size();
   if (n_cluster == 0) {
     return;
   }
-  int height = pClusteredChar[n_cluster - 1][0].bound_rect.y;
+  int height = p_clustered_char[n_cluster - 1][0].bound_rect.y;
 
   for (int i = 1; i < n_cluster; i++) {
     int index = n_cluster - (i + 1);
-    if (height < pClusteredChar[index][0].bound_rect.y) {
-      pClusteredChar.erase(pClusteredChar.begin() + index);
+    if (height < p_clustered_char[index][0].bound_rect.y) {
+      p_clustered_char.erase(p_clustered_char.begin() + index);
     } else {
-      height = pClusteredChar[index][0].bound_rect.y;
-      pClusteredChar.pop_back();
+      height = p_clustered_char[index][0].bound_rect.y;
+      p_clustered_char.pop_back();
     }
   }
 }
 
 void w_ocr_engine::add_text_to_original_image(
-    _Inout_ cv::Mat &pImage,
-    _In_ std::vector<characters_struct> &pClusteredChar) {
-  for (int i = 0; i < pClusteredChar.size(); i++) {
-    cv::putText(pImage, pClusteredChar[i].text,
-                cv::Point(pClusteredChar[i].bound_rect.x,
-                          pClusteredChar[i].bound_rect.y + 100),
+    _Inout_ cv::Mat &p_image,
+    _In_ std::vector<characters_struct> &p_clustered_char) {
+  for (int i = 0; i < p_clustered_char.size(); i++) {
+    cv::putText(p_image, p_clustered_char[i].text,
+                cv::Point(p_clustered_char[i].bound_rect.x,
+                          p_clustered_char[i].bound_rect.y + 100),
                 cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 255, 0), false);
   }
 
