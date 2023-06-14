@@ -278,6 +278,26 @@ if (WOLF_SYSTEM_PYTHON)
     )
 endif()
 
+if (WOLF_SYSTEM_REDIS)
+
+    vcpkg_install(hiredis hiredis[core] TRUE)
+    list(APPEND LIBS hiredis::hiredis)
+
+    if (WOLF_SYSTEM_OPENSSL)
+        vcpkg_install(hiredis_ssl hiredis[ssl] TRUE)
+        list(APPEND LIBS hiredis::hiredis_ssl)
+    endif()
+
+    file(GLOB_RECURSE WOLF_SYSTEM_REDIS_SRC
+        "${CMAKE_CURRENT_SOURCE_DIR}/system/db/w_redis_client.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/system/db/w_redis_client.hpp"
+    )
+
+    list(APPEND SRCS 
+        ${WOLF_SYSTEM_REDIS_SRC}
+    )
+endif()
+
 if (EMSCRIPTEN)
     file (GLOB_RECURSE WOLF_SYSTEM_SRC
         "${CMAKE_CURRENT_SOURCE_DIR}/system/w_gametime.cpp"
