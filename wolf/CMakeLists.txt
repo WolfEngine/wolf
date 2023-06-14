@@ -64,7 +64,7 @@ include(FetchContent)
 set(FETCHCONTENT_QUIET OFF)
 
 # set type of library
-if (LINUX OR ANDROID_ABI)
+if (LINUX OR ANDROID)
     set(LIBRARY_TYPE "SHARED")
 else()
     set(LIBRARY_TYPE "STATIC")

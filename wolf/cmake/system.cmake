@@ -279,23 +279,28 @@ if (WOLF_SYSTEM_PYTHON)
 endif()
 
 if (WOLF_SYSTEM_REDIS)
+    if (ANDROID)
+        message(WARNING "WOLF_SYSTEM_REDIS is not supported for Android")
+    elseif(EMSCRIPTEN)
+        message(WARNING "WOLF_SYSTEM_REDIS is not supported for the wasm32 target on Emscripten")
+    else()
+        vcpkg_install(hiredis hiredis[core] TRUE)
+        list(APPEND LIBS hiredis::hiredis)
 
-    vcpkg_install(hiredis hiredis[core] TRUE)
-    list(APPEND LIBS hiredis::hiredis)
+        if (WOLF_SYSTEM_OPENSSL)
+            vcpkg_install(hiredis_ssl hiredis[ssl] TRUE)
+            list(APPEND LIBS hiredis::hiredis_ssl)
+        endif()
 
-    if (WOLF_SYSTEM_OPENSSL)
-        vcpkg_install(hiredis_ssl hiredis[ssl] TRUE)
-        list(APPEND LIBS hiredis::hiredis_ssl)
+        file(GLOB_RECURSE WOLF_SYSTEM_REDIS_SRC
+            "${CMAKE_CURRENT_SOURCE_DIR}/system/db/w_redis_client.cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/system/db/w_redis_client.hpp"
+        )
+
+        list(APPEND SRCS 
+            ${WOLF_SYSTEM_REDIS_SRC}
+        )
     endif()
-
-    file(GLOB_RECURSE WOLF_SYSTEM_REDIS_SRC
-        "${CMAKE_CURRENT_SOURCE_DIR}/system/db/w_redis_client.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/system/db/w_redis_client.hpp"
-    )
-
-    list(APPEND SRCS 
-        ${WOLF_SYSTEM_REDIS_SRC}
-    )
 endif()
 
 if (EMSCRIPTEN)

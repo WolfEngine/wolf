@@ -1,11 +1,8 @@
 # Wolf Engine [![Apache licensed](https://img.shields.io/badge/license-Apache-blue)](https://github.com/WolfEngine/wolf/blob/main/LICENSE.md) [![codecov](https://codecov.io/github/WolfEngine/wolf/branch/main/graph/badge.svg?token=AhoU9QV7eS)](https://codecov.io/github/WolfEngine/wolf) [![windows-x64-Microsoft C++ Code Analysis](https://github.com/WolfEngine/wolf/actions/workflows/msvc.yml/badge.svg?branch=main)](https://github.com/WolfEngine/wolf/actions/workflows/msvc.yml) [![ubuntu-x64-CodeQL Analysis](https://github.com/WolfEngine/wolf/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/WolfEngine/wolf/actions/workflows/codeql.yml)[![wasm32-unknown-emscripten](https://github.com/WolfEngine/wolf/actions/workflows/wasm.yml/badge.svg?branch=main)](https://github.com/WolfEngine/wolf/actions/workflows/wasm.yml)
 
 <img src="https://raw.githubusercontent.com/WolfEngine/wolf/main/Logo.png" width="256" height="256" alt="wolf"/>
-<p><b>Welcome to the Wolf Engine source code.</b></p> 
-<p>The&nbsp;<b>Wolf Engine</b>&nbsp;is the next
-generation of&nbsp;<a href="https://github.com/PooyaEimandar/PersianEngine">Persian Game Engine</a>&nbsp;which is a
-cross-platform open source game engine created by&nbsp;<a href="https://pooyaeimandar.github.io/">Pooya Eimandar</a>.
-The Wolf is a comprehensive set of C++ open source libraries for realtime rendering, realtime streaming and game developing, which is support <b>Lua</b> and <b>WASM</b> as an embedded scripting languages.</p>
+
+The Wolf Engine is the next generation of the [Persian Game Engine](https://github.com/PooyaEimandar/PersianEngine), which is a cross-platform open-source game engine created by [Pooya Eimandar](https://pooyaeimandar.github.io/). Wolf is a comprehensive set of C++ modules for realtime streaming, system & media programming, machine learning and real time rendering. It supports Lua and WASM as embedded scripting languages.
 
 # Build
 - Prerequisites 
@@ -91,6 +88,7 @@ cmake --install C:/wolf/build/windows-x64-msvc-static --prefix C:/wolf
 | [LZMA](https://github.com/WolfEngine/wolf/blob/main/wolf/system/test/compress.hpp)  | :white_check_mark: | :white_check_mark: | :memo: | :x: | :x: | :x: |
 | OpenTelemetry  | :memo: | :memo: | :memo: | :x: | :x: | :x: |
 | RAFT  | :memo: | :memo: | :memo: | :memo: | :memo: | :memo: |
+| Redis | :white_check_mark: | :memo: | :memo: | :x: | :x: | :x: |
 | Screen Capture  | :memo: | :construction: | :construction: | :x: | :x: | :x: |
 | [Signal Slot](https://github.com/WolfEngine/wolf/blob/main/wolf/system/test/signal_slot.hpp)  | :white_check_mark: | :white_check_mark: | :construction: | :x: | :x: | :x: |
 | [Stacktrace](https://github.com/WolfEngine/wolf/blob/main/wolf/tests.cpp)  | :white_check_mark: | :white_check_mark: | :construction: | :construction: | :construction: | :x: |
