@@ -2,108 +2,113 @@
 
 #pragma once
 
-#include <hiredis/async.h>
-#include <hiredis/hiredis.h>
-
 #include <boost/asio.hpp>
-#include <boost/asio/awaitable.hpp>
-#include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
-#include <boost/asio/spawn.hpp>
+#include <boost/asio/experimental/awaitable_operators.hpp>
+#include <boost/redis.hpp>
+#include <boost/redis/connection.hpp>
+#include <boost/redis/src.hpp>
 #include <wolf/wolf.hpp>
 
 namespace wolf::system::db {
 
-struct w_redis_reply {
-  ~w_redis_reply() {
-    if (this->reply) {
-      freeReplyObject(this->reply);
-    }
-  }
-  redisReply* reply = nullptr;
-};
+using namespace boost::asio::experimental::awaitable_operators;
 
 class w_redis_client {
+  using connection =
+      boost::asio::deferred_t::as_default_on_t<boost::redis::connection>;
+
  public:
-  W_API explicit w_redis_client(_In_ boost::asio::io_context& p_io_context)
-      : _io_context(p_io_context) {}
+  W_API explicit w_redis_client(_In_ boost::redis::config p_config)
+      : _config(std::move(p_config)) {}
+  W_API ~w_redis_client() { cancel(); }
 
-  W_API ~w_redis_client() {
-    if (this->_redis_context) {
-      redisAsyncFree(this->_redis_context);
+  // disable copy constructor
+  w_redis_client(const w_redis_client&) = delete;
+  // disable copy operator
+  w_redis_client& operator=(const w_redis_client&) = delete;
+
+  // move constructor
+  w_redis_client(w_redis_client&& p_other) {
+    _move(std::forward<w_redis_client&&>(p_other));
+  }
+  // move operator
+  w_redis_client& operator=(w_redis_client&& p_other) noexcept {
+    _move(std::forward<w_redis_client&&>(p_other));
+    return *this;
+  }
+
+  W_API auto connect() -> boost::asio::awaitable<boost::leaf::result<int>> {
+    try {
+      if (!this->_conn) {
+        this->_conn = std::make_shared<connection>(
+            co_await boost::asio::this_coro::executor);
+        if (!this->_conn) {
+          co_return W_FAILURE(std::errc::not_enough_memory,
+                              "could not allocate memory for redis connection");
+        }
+      }
+
+      this->_conn->async_run(
+          this->_config, {},
+          boost::asio::consign(boost::asio::detached, this->_conn));
+
+      boost::redis::response<std::string> _res;
+      boost::redis::request _req;
+      _req.push("PING");
+
+      std::ignore = co_await this->_conn->async_exec(
+          _req, _res, boost::asio::use_awaitable);
+
+      if (_res._Myfirst._Val != "PONG") {
+        const auto _msg = wolf::format(
+            "could not connect to redis host '{}:{}' because 'PONG' response "
+            "was "
+            "expected",
+            this->_config.addr.host, this->_config.addr.port);
+        co_return W_FAILURE(std::errc::operation_canceled, _msg);
+      }
+
+      co_return 0;
+    } catch (const std::exception& e) {
+      const auto _msg = wolf::format(
+          "could not connect to redis host '{}:{}' because of {} ",
+          this->_config.addr.host, this->_config.addr.port, e.what());
+      co_return W_FAILURE(std::errc::operation_canceled, _msg);
     }
   }
 
-  W_API boost::asio::awaitable<boost::leaf::result<int>> connect(
-      const std::string& p_host, std::uint16_t p_port) {
-    if (p_host.empty()) {
-      co_return W_FAILURE(std::errc::invalid_argument, "redis host is empty");
+  W_API void cancel() {
+    if (this->_conn) {
+      this->_conn->cancel();
     }
-
-    if (this->_redis_context) {
-      redisAsyncFree(this->_redis_context);
-    }
-
-    this->_redis_context = redisAsyncConnect(p_host.c_str(), p_port);
-    if (!this->_redis_context) {
-      co_return W_FAILURE(std::errc::invalid_argument,
-                          "failed to create hiredis context");
-    }
-
-    if (this->_redis_context->err) {
-      co_return W_FAILURE(
-          std::errc::invalid_argument,
-          wolf::format("failed to create hiredis context because: {}",
-                       this->_redis_context->errstr));
-    }
-
-    auto _ctx = this->_redis_context;
-    boost::asio::co_spawn(
-        this->_io_context,
-        [&]() -> boost::asio::awaitable<void> {
-          redisAsyncSetConnectCallback(
-              _ctx, [](const redisAsyncContext*, int) { /*NOP*/ });
-          redisAsyncSetDisconnectCallback(
-              _ctx, [](const redisAsyncContext*, int) { /*NOP*/ });
-          redisAsyncConnect(p_host.c_str(), p_port);
-
-          co_return;
-        },
-        boost::asio::detached);
-
-    co_return 0;
   }
 
-  W_API boost::asio::awaitable<w_redis_reply> execute_command(
-      _In_ const std::string& p_command) {
-    w_redis_reply _reply;
-
-    auto _ctx = this->_redis_context;
-    boost::asio::co_spawn(
-        this->_io_context,
-        [&]() -> boost::asio::awaitable<void> {
-          redisAsyncCommand(
-              _ctx,
-              [](redisAsyncContext* p_ctx, void* p_reply, void* p_arg) {
-                auto _reply = static_cast<w_redis_reply*>(p_arg);
-                if (_reply) {
-                  auto _r = static_cast<redisReply*>(p_reply);
-                  _reply->reply =
-                      _r ? _r : reinterpret_cast<redisReply*>(REDIS_ERR);
-                }
-              },
-              &_reply, p_command.c_str());
-
-          co_return;
-        },
-        boost::asio::detached);
-
-    co_return _reply;
+  template <class R>
+  auto exec(const boost::redis::request& p_req, _Inout_ R& p_res)
+      -> boost::asio::awaitable<boost::leaf::result<int>> {
+    try {
+      co_return co_await this->_conn->async_exec(p_req, p_res,
+                                                 boost::asio::use_awaitable);
+    } catch (const std::exception& e) {
+      const auto _msg = wolf::format(
+          "could not execute redis command on host '{}:{}' because of {} ",
+          this->_config.addr.host, this->_config.addr.port, e.what());
+      co_return W_FAILURE(std::errc::operation_canceled, _msg);
+    }
   }
 
  private:
-  boost::asio::io_context& _io_context;
-  redisAsyncContext* _redis_context = nullptr;
+  void _move(w_redis_client&& p_other) noexcept {
+    if (this == &p_other) {
+      return;
+    }
+    this->_config = std::move(_config);
+    this->_conn = std::move(p_other._conn);
+  }
+
+  boost::redis::config _config;
+  std::shared_ptr<connection> _conn = nullptr;
 };
 
 }  // namespace wolf::system::db

@@ -1,10 +1,11 @@
 ﻿#ifdef WOLF_SYSTEM_SOCKET
 
 #include "w_tcp_client.hpp"
+
+#include <boost/asio/experimental/awaitable_operators.hpp>
 #include <chrono>
 
 #include "DISABLE_ANALYSIS_BEGIN"
-#include <boost/asio/experimental/awaitable_operators.hpp>
 #include "DISABLE_ANALYSIS_END"
 
 using namespace boost::asio::experimental::awaitable_operators;
@@ -25,12 +26,12 @@ w_tcp_client::~w_tcp_client() noexcept {
     if (_socket_nn->is_open()) {
       _socket_nn->close();
     }
-    _socket_nn->release();
+    _socket_nn->shutdown(tcp::socket::shutdown_both);
   } catch (...) {
   }
 }
 
-boost::asio::awaitable<boost::asio::ip::basic_resolver_results<tcp>> 
+boost::asio::awaitable<boost::asio::ip::basic_resolver_results<tcp>>
 w_tcp_client::async_resolve(_In_ const tcp::endpoint &p_endpoint) {
   const auto _resolver_nn =
       gsl::not_null<tcp::resolver *>(this->_resolver.get());
@@ -69,8 +70,8 @@ w_tcp_client::async_connect(_In_ const tcp::endpoint &p_endpoint,
   return this->_socket->async_connect(p_endpoint, boost::asio::use_awaitable);
 }
 
-boost::asio::awaitable<size_t>
-w_tcp_client::async_write(_In_ const w_buffer &p_buffer) {
+boost::asio::awaitable<size_t> w_tcp_client::async_write(
+    _In_ const w_buffer &p_buffer) {
   const gsl::not_null<tcp::socket *> _socket_nn(this->_socket.get());
 
   return _socket_nn->async_send(
@@ -78,8 +79,8 @@ w_tcp_client::async_write(_In_ const w_buffer &p_buffer) {
       boost::asio::use_awaitable);
 }
 
-boost::asio::awaitable<size_t>
-w_tcp_client::async_read(_Inout_ w_buffer &p_mut_buffer) {
+boost::asio::awaitable<size_t> w_tcp_client::async_read(
+    _Inout_ w_buffer &p_mut_buffer) {
   const gsl::not_null<tcp::socket *> _socket_nn(this->_socket.get());
 
   return _socket_nn->async_receive(boost::asio::buffer(p_mut_buffer.buf),

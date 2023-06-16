@@ -35,6 +35,7 @@ BOOST_AUTO_TEST_CASE(wolf_test) {
 // #include <wolf/system/test/ws.hpp>
 // #include <wolf/system/test/lua.hpp>
 // #include <wolf/system/test/python.hpp>
+#include <wolf/system/test/redis.hpp>
 
 #pragma endregion
 
@@ -43,7 +44,7 @@ BOOST_AUTO_TEST_CASE(wolf_test) {
 // #include <wolf/stream/test/ffmpeg_stream.hpp>
 // #include <wolf/stream/test/rist.hpp>
 // #include <wolf/stream/test/grpc.hpp>
-#include <wolf/stream/test/quic.hpp>
+// #include <wolf/stream/test/quic.hpp>
 
 #pragma endregion
 

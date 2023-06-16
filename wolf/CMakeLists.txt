@@ -111,7 +111,7 @@ option(WOLF_SYSTEM_PYTHON "Enable embedded Python3 scripting" OFF)
 option(WOLF_SYSTEM_REDIS "Enable redis client based on hiredis" ON)
 option(WOLF_SYSTEM_SIG_SLOT "Enable signal/slot based on boost signals2" OFF)
 option(WOLF_SYSTEM_SOCKET "Enable TCP/UDP protocol over socket" ON)
-option(WOLF_SYSTEM_OPENSSL "Enable openSSL" OFF)
+option(WOLF_SYSTEM_OPENSSL "Enable openSSL" ON)
 option(WOLF_SYSTEM_STACKTRACE "Enable boost stacktrace" OFF)
 option(WOLF_SYSTEM_ZLIB "Enable Zlib compression library" OFF)
 
@@ -233,6 +233,7 @@ if (MSVC)
         -DWIN32_LEAN_AND_MEAN
         -DWIN64
         -DWIN32
+        -D_WIN32_WINNT=0x0601 # Windows 7
     )
 elseif (EMSCRIPTEN)
     add_definitions(
@@ -316,11 +317,11 @@ source_group("stream/webrtc/interceptor" FILES ${WOLF_STREAM_WEBRTC_INTERCEPTOR_
 source_group("stream/webrtc/media" FILES ${WOLF_STREAM_WEBRTC_MEDIA_SRC})
 source_group("stream/webrtc/peer" FILES ${WOLF_STREAM_WEBRTC_PEER_SRC})
 source_group("stream" FILES ${WOLF_STREAM_SRC})
+source_group("system/db" FILES ${WOLF_SYSTEM_REDIS_SRC})
 source_group("system/gamepad" FILES ${WOLF_SYSTEM_GAMEPAD_CLIENT_SRC} ${WOLF_SYSTEM_GAMEPAD_VIRTUAL_SRCS})
 source_group("system/log" FILES ${WOLF_SYSTEM_LOG_SRC})
 source_group("system/compression" FILES ${WOLF_SYSTEM_LZ4_SRCS} ${WOLF_SYSTEM_LZMA_SRCS})
-source_group("system/script" FILES ${WOLF_SYSTEM_LUA_SRC})
-source_group("system/script" FILES ${WOLF_SYSTEM_PYTHON_SRC})
+source_group("system/script" FILES ${WOLF_SYSTEM_LUA_SRC} ${WOLF_SYSTEM_PYTHON_SRC})
 source_group("system/socket" FILES ${WOLF_SYSTEM_SOCKET_SRC} ${WOLF_SYSTEM_HTTP_WS_SRC})
 source_group("system/test" FILES ${WOLF_SYSTEM_TEST_SRC})
 source_group("system" FILES ${WOLF_SYSTEM_SRC})
