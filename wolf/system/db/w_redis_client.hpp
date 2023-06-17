@@ -60,7 +60,7 @@ class w_redis_client {
       std::ignore = co_await this->_conn->async_exec(
           _req, _res, boost::asio::use_awaitable);
 
-      if (_res._Myfirst._Val != "PONG") {
+      if (std::get<0>(_res).value() != "PONG") {
         const auto _msg = wolf::format(
             "could not connect to redis host '{}:{}' because 'PONG' response "
             "was "
