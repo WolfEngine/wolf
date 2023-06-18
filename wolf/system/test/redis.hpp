@@ -24,6 +24,10 @@ BOOST_AUTO_TEST_CASE(redis_test) {
         w_redis_client _redis(_config);
         const auto& _ret = co_await _redis.connect();
         if (!_ret.has_error()) {
+          const auto& res_cmd = co_await _redis.exec("PING");
+          BOOST_TEST(res_cmd.has_error() == false);
+          BOOST_TEST(res_cmd.value() == "PONG");
+
           boost::redis::request _reqs;
           _reqs.push("HELLO", 3);
           _reqs.push("PING", "Hello world");

@@ -293,7 +293,6 @@ if (WOLF_SYSTEM_REDIS)
         )
         message("fetching https://github.com/boostorg/redis.git")
     
-        # find_package(Boost REQUIRED COMPONENTS python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR})
         FetchContent_Declare(
             boost_redis
             GIT_REPOSITORY https://github.com/boostorg/redis.git
@@ -303,8 +302,7 @@ if (WOLF_SYSTEM_REDIS)
         set(FETCHCONTENT_QUIET OFF)
         FetchContent_MakeAvailable(boost_redis)
 
-        list(APPEND INCLUDES ${boost_redis_SOURCE_DIR}/include)
-        # list(APPEND LIBS OpenAL::OpenAL)   
+        list(APPEND INCLUDES ${boost_redis_SOURCE_DIR}/include) 
         
         file(GLOB_RECURSE WOLF_SYSTEM_REDIS_SRC
             "${CMAKE_CURRENT_SOURCE_DIR}/system/db/w_redis_client.cpp"
