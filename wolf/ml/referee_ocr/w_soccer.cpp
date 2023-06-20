@@ -16,7 +16,6 @@ using config_for_ocr_struct = wolf::ml::ocr::config_for_ocr_struct;
 using w_referee = wolf::ml::ocr::w_referee;
 
 w_soccer::w_soccer() {
-  // LOG_P(w_log_type::W_LOG_INFO, "creating w_soccer object ...");
 
   char *type_1 = new char[30];
   snprintf(type_1, 30, "SOCCER_SCREEN_IDENTITY");
@@ -57,8 +56,8 @@ w_soccer::w_soccer() {
 
 w_soccer::~w_soccer() {}
 
-w_ocr_engine::config_struct w_soccer::set_config(_In_ char *pType) {
-  std::string type(pType);
+w_ocr_engine::config_struct w_soccer::set_config(_In_ char *p_type) {
+  std::string type(p_type);
 
   w_ocr_engine::config_struct config;
 
@@ -99,8 +98,8 @@ w_ocr_engine::config_struct w_soccer::set_config(_In_ char *pType) {
   return config;
 }
 
-config_for_ocr_struct w_soccer::set_config_for_ocr(_In_ char *pType) {
-  std::string type(pType);
+config_for_ocr_struct w_soccer::set_config_for_ocr(_In_ char *p_type) {
+  std::string type(p_type);
   config_for_ocr_struct config;
 
   config.restrictions.max_area =
@@ -148,50 +147,51 @@ void w_soccer::fill_stat_map() {
 }
 
 void w_soccer::extract_result_from_frame_boxes(
-    _In_ cv::Mat &frame, _Inout_ frame_result_struct &frame_data) {
+    _In_ cv::Mat &p_frame,
+    _Inout_ frame_result_struct &p_frame_data) {
   std::vector<w_ocr_engine::character_and_center> temp_words, temp_team_names;
 
-  cv::Mat frame_box = frame(screen_identity.window);
+  cv::Mat frame_box = p_frame(screen_identity.window);
   temp_words =
       ocr_object.image_to_string(frame_box, screen_identity.config_for_ocr);
 
   if (temp_words.size() == 1) {
     if (temp_words[0].text.c_str()[0] == stat_first_half.c_str()[0] ||
         temp_words[0].text.c_str()[0] == stat_second_half.c_str()[0]) {
-      frame_data.stat = stat_map[temp_words[0].text];
+      p_frame_data.stat = stat_map[temp_words[0].text];
       temp_words.clear();
 
-      frame_box = frame(result_home.window);
+      frame_box = p_frame(result_home.window);
       temp_words =
           ocr_object.image_to_string(frame_box, result_home.config_for_ocr);
       if (temp_words.size() != 0) {
-        frame_data.home_result = temp_words[0];
+        p_frame_data.home_result = temp_words[0];
 
-        frame_box = frame(result_away.window);
+        frame_box = p_frame(result_away.window);
         temp_words =
             ocr_object.image_to_string(frame_box, result_away.config_for_ocr);
         if (temp_words.size() != 0) {
-          frame_data.away_result = temp_words[0];
+          p_frame_data.away_result = temp_words[0];
 
           temp_team_names.clear();
 
-          frame_box = frame(name_home.window);
+          frame_box = p_frame(name_home.window);
           temp_team_names =
               ocr_object.image_to_string(frame_box, name_home.config_for_ocr);
           if (temp_team_names.size() == 0) {
             frame_box.release();
             return;
           }
-          frame_data.home_name = concatenate_name_result(temp_team_names);
+          p_frame_data.home_name = concatenate_name_result(temp_team_names);
 
-          frame_box = frame(name_away.window);
+          frame_box = p_frame(name_away.window);
           temp_team_names =
               ocr_object.image_to_string(frame_box, name_away.config_for_ocr);
           if (temp_team_names.size() == 0) {
             frame_box.release();
             return;
           }
-          frame_data.away_name = concatenate_name_result(temp_team_names);
+          p_frame_data.away_name = concatenate_name_result(temp_team_names);
         }
       }
     }
@@ -200,17 +200,18 @@ void w_soccer::extract_result_from_frame_boxes(
 }
 
 void w_soccer::extract_result_based_on_clusters_symmetricity(
-    _In_ cv::Mat &frame, _Inout_ frame_result_struct &frame_data) {
-  cv::Mat cloned_image = frame.clone();
-  int image_width = frame.cols;
+    _In_ cv::Mat &p_frame,
+    _Inout_ frame_result_struct &p_frame_data) {
+  cv::Mat cloned_image = p_frame.clone();
+  int image_width = p_frame.cols;
 
   if (get_env_boolean("CONFIG_STORE_LATEST_FRAME")) {
     std::string image_data_file_name =
         get_env_string("SOCCER_GLOBAL_LOG_FILE") + "_" +
         std::to_string(frame_number % 10);
     std::ofstream ofs(image_data_file_name.c_str(), std::ofstream::out);
-    ofs.write((char *)frame.data,
-              frame.total() * frame.channels() * sizeof(uint8_t));
+    ofs.write((char *)p_frame.data,
+              p_frame.total() * p_frame.channels() * sizeof(uint8_t));
     ofs.close();
   }
 
@@ -225,51 +226,50 @@ void w_soccer::extract_result_based_on_clusters_symmetricity(
       time_candidates.size() == 1) {
     for (int i = 0; i < words_candidates.size(); i++) {
       std::vector<w_ocr_engine::character_and_center> text_of_cluster =
-          ocr_object.char_vec_to_string(words_candidates[i], frame,
+          ocr_object.char_vec_to_string(words_candidates[i], p_frame,
                                         name_home.config_for_ocr);
 
       if (text_of_cluster.size() > 0) {
         if (text_of_cluster[0].center.x < image_width / 2) {
-          frame_data.home_name = text_of_cluster[0];
+          p_frame_data.home_name = text_of_cluster[0];
         } else {
-          frame_data.away_name = text_of_cluster[0];
+          p_frame_data.away_name = text_of_cluster[0];
         }
       }
     }
     for (int i = 0; i < digits_candidates.size(); i++) {
       std::vector<w_ocr_engine::character_and_center> text_of_cluster =
-          ocr_object.char_vec_to_string(digits_candidates[i], frame,
+          ocr_object.char_vec_to_string(digits_candidates[i], p_frame,
                                         result_home.config_for_ocr);
       if (text_of_cluster.size() > 0) {
         if (text_of_cluster[0].center.x < image_width / 2) {
-          frame_data.home_result = text_of_cluster[0];
+          p_frame_data.home_result = text_of_cluster[0];
         } else {
-          frame_data.away_result = text_of_cluster[0];
+          p_frame_data.away_result = text_of_cluster[0];
         }
       }
     }
     for (int i = 0; i < time_candidates.size(); i++) {
       std::vector<w_ocr_engine::character_and_center> text_of_cluster =
-          ocr_object.char_vec_to_string(time_candidates[i], frame,
+          ocr_object.char_vec_to_string(time_candidates[i], p_frame,
                                         screen_identity.config_for_ocr);
       if (text_of_cluster.size() > 0) {
-        frame_data.stat = get_nearest_string(text_of_cluster[0].text, stat_map);
-        if (frame_data.stat.compare("") == 0) {
+        p_frame_data.stat = get_nearest_string(text_of_cluster[0].text, stat_map);
+        if (p_frame_data.stat.compare("") == 0) {
           w_ocr_engine::config_struct temp_screen_identity = screen_identity;
           temp_screen_identity.config_for_ocr.is_digit = false;
           text_of_cluster = ocr_object.char_vec_to_string(
-              time_candidates[i], frame, temp_screen_identity.config_for_ocr);
+              time_candidates[i], p_frame, temp_screen_identity.config_for_ocr);
           std::vector<std::string> temp_result =
               split_string(text_of_cluster[0].text, ' ');
           if (temp_result.size() > 1) {
-            frame_data.stat = get_nearest_string(temp_result[1], stat_map);
+            p_frame_data.stat = get_nearest_string(temp_result[1], stat_map);
           }
         }
-        if (frame_data.stat.compare("") != 0) {
-          extract_penalty_result_symmetricity(frame, digits_candidates,
+        if (p_frame_data.stat.compare("") != 0) {
+          extract_penalty_result_symmetricity(p_frame, digits_candidates,
                                               words_candidates, time_candidates,
-                                              frame_data);
-          // frame_data.stat = stat_map[frame_data.stat];
+                                              p_frame_data);
         }
       }
     }
@@ -278,17 +278,17 @@ void w_soccer::extract_result_based_on_clusters_symmetricity(
 }
 
 void w_soccer::extract_penalty_result_symmetricity(
-    _In_ cv::Mat &frame,
+    _In_ cv::Mat &p_frame,
     _In_ std::vector<std::vector<w_ocr_engine::characters_struct>>
-        digits_candidates,
+        p_digits_candidates,
     _In_ std::vector<std::vector<w_ocr_engine::characters_struct>>
-        words_candidates,
+        p_words_candidates,
     _In_ std::vector<std::vector<w_ocr_engine::characters_struct>>
-        time_candidates,
-    _Inout_ frame_result_struct &frame_data) {
-  if (frame_data.stat.compare(get_env_string("SOCCER_STAT_CHECK_PENALTY")) !=
+        p_time_candidates,
+    _Inout_ frame_result_struct &p_frame_data) {
+  if (p_frame_data.stat.compare(get_env_string("SOCCER_STAT_CHECK_PENALTY")) !=
           0 ||
-      digits_candidates.size() != 2 || time_candidates.size() != 1) {
+      p_digits_candidates.size() != 2 || p_time_candidates.size() != 1) {
     return;
   }
   cv::Rect result_box_bound_rect;
@@ -296,14 +296,14 @@ void w_soccer::extract_penalty_result_symmetricity(
   if (stat_second_half.compare(get_env_string("SOCCER_STAT_CHECK_PENALTY")) ==
       0) {
     w_ocr_engine::characters_struct left, right;
-    left = (digits_candidates[0][0].bound_rect.x >
-            digits_candidates[1][0].bound_rect.x)
-               ? digits_candidates[1][digits_candidates[1].size() - 1]
-               : digits_candidates[0][digits_candidates[0].size() - 1];
-    right = (digits_candidates[0][0].bound_rect.x >
-             digits_candidates[1][0].bound_rect.x)
-                ? digits_candidates[0][0]
-                : digits_candidates[1][0];
+    left = (p_digits_candidates[0][0].bound_rect.x >
+            p_digits_candidates[1][0].bound_rect.x)
+               ? p_digits_candidates[1][p_digits_candidates[1].size() - 1]
+               : p_digits_candidates[0][p_digits_candidates[0].size() - 1];
+    right = (p_digits_candidates[0][0].bound_rect.x >
+             p_digits_candidates[1][0].bound_rect.x)
+                ? p_digits_candidates[0][0]
+                : p_digits_candidates[1][0];
 
     result_box_bound_rect.x = left.bound_rect.x + left.bound_rect.width;
     result_box_bound_rect.width = right.bound_rect.x - result_box_bound_rect.x;
@@ -313,7 +313,7 @@ void w_soccer::extract_penalty_result_symmetricity(
       return;
     }
 
-    if (result_box_bound_rect.width > frame.cols / 3) {
+    if (result_box_bound_rect.width > p_frame.cols / 3) {
       return;
     }
 
@@ -322,21 +322,14 @@ void w_soccer::extract_penalty_result_symmetricity(
     result_box_bound_rect.height = left.bound_rect.height / 2;
   } else if (stat_penalty.compare(
                  get_env_string("SOCCER_STAT_CHECK_PENALTY")) == 0) {
-    result_box_bound_rect.x = time_candidates[0][0].bound_rect.x - 50;
+    result_box_bound_rect.x = p_time_candidates[0][0].bound_rect.x - 50;
     result_box_bound_rect.width = 50 + 10;
-    // (time_candidates[0][time_candidates[0].size() - 1].bound_rect.x +
-    //  time_candidates[0][time_candidates[0].size() - 1].bound_rect.width -
-    //  result_box_bound_rect.x) /
-    // 2;
-    result_box_bound_rect.y = time_candidates[0][0].bound_rect.y;
-    result_box_bound_rect.height = time_candidates[0][0].bound_rect.height;
+    result_box_bound_rect.y = p_time_candidates[0][0].bound_rect.y;
+    result_box_bound_rect.height = p_time_candidates[0][0].bound_rect.height;
   }
 
   cv::Mat result_box;
-  frame(result_box_bound_rect).copyTo(result_box);
-
-  // cv::imshow("image", result_box);
-  // cv::waitKey();
+  p_frame(result_box_bound_rect).copyTo(result_box);
 
   std::vector<w_ocr_engine::character_and_center> temp_words;
 
@@ -345,33 +338,34 @@ void w_soccer::extract_penalty_result_symmetricity(
 
   if (temp_words.size() == 2 && stat_second_half.compare(get_env_string(
                                     "SOCCER_STAT_CHECK_PENALTY")) == 0) {
-    frame_data.home_penalty_result =
+    p_frame_data.home_penalty_result =
         (temp_words[0].center.x < temp_words[1].center.x) ? temp_words[0]
                                                           : temp_words[1];
-    frame_data.away_penalty_result =
+    p_frame_data.away_penalty_result =
         (temp_words[0].center.x < temp_words[1].center.x) ? temp_words[1]
                                                           : temp_words[0];
   } else if (temp_words.size() == 1 && stat_penalty.compare(get_env_string(
                                            "SOCCER_STAT_CHECK_PENALTY")) == 0) {
     std::vector<std::string> temp_result =
         split_string(temp_words[0].text, ' ');
-    frame_data.home_penalty_result.text = temp_result[0];
-    frame_data.away_penalty_result.text = temp_result[1];
+    p_frame_data.home_penalty_result.text = temp_result[0];
+    p_frame_data.away_penalty_result.text = temp_result[1];
   }
 
   return;
 }
 
-int w_soccer::single_image_result_extraction(_In_ uint8_t *pRawImage,
-                                              _In_ int height, _In_ int width,
-                                              _In_ ocr_callback *callback)
+int w_soccer::single_image_result_extraction(_In_ uint8_t *p_raw_image,
+                                              _In_ int p_height,
+                                              _In_ int p_width,
+                                              _In_ ocr_callback *p_callback)
 {
   int desired_height = get_env_int("SOCCER_GLOBAL_FRAME_HEIGHT");
   int desired_width = get_env_int("SOCCER_GLOBAL_FRAME_WIDTH");
-  if (!pRawImage || height != desired_height || width != desired_width) {
+  if (!p_raw_image || p_height != desired_height || p_width != desired_width) {
     return 1;
   }
-  cv::Mat original_image = cv::Mat(height, width, CV_8UC3, pRawImage);
+  cv::Mat original_image = cv::Mat(p_height, p_width, CV_8UC3, p_raw_image);
 
   frame_result_struct temp_frame_data;
 
@@ -404,7 +398,7 @@ int w_soccer::single_image_result_extraction(_In_ uint8_t *pRawImage,
 
   extract_game_results();
 
-  if (callback) {
+  if (p_callback) {
     for (int i = 0; i < matches_data.size(); i++) {
       if (matches_data[i].extracted && !matches_data[i].applied) {
         std::string str_result = matches_data[i].stat + "," +
@@ -421,7 +415,7 @@ int w_soccer::single_image_result_extraction(_In_ uint8_t *pRawImage,
         char *char_result = new char[256];
         strcpy(char_result, str_result.c_str());
 
-        callback(char_result, 256, matches_data[i].result_image.data,
+        p_callback(char_result, 256, matches_data[i].result_image.data,
                  matches_data[i].result_image.cols,
                  matches_data[i].result_image.rows);
         the_last_result_message = str_result;
@@ -435,21 +429,21 @@ int w_soccer::single_image_result_extraction(_In_ uint8_t *pRawImage,
 }
 
 void w_soccer::extract_all_image_char_clusters(
-    cv::Mat &image,
+    cv::Mat &p_image,
     std::vector<std::vector<w_ocr_engine::characters_struct>>
-        &digits_candidates,
-    std::vector<std::vector<w_ocr_engine::characters_struct>> &words_candidates,
-    std::vector<std::vector<w_ocr_engine::characters_struct>> &time_candidates)
+        &p_digits_candidates,
+    std::vector<std::vector<w_ocr_engine::characters_struct>> &p_words_candidates,
+    std::vector<std::vector<w_ocr_engine::characters_struct>> &p_time_candidates)
 {
-  cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
+  cv::cvtColor(p_image, p_image, cv::COLOR_BGR2GRAY);
   int global_threshold = get_env_int("SOCCER_GLOBAL_THRESHOLD");
-  cv::threshold(image, image, global_threshold, 255,
+  cv::threshold(p_image, p_image, global_threshold, 255,
                 cv::THRESH_BINARY); // cv::THRESH_OTSU);
 
   std::vector<std::vector<cv::Point>> contours;
   std::vector<cv::Vec4i> hierarchy;
 
-  cv::findContours(image, contours, hierarchy, cv::RETR_TREE,
+  cv::findContours(p_image, contours, hierarchy, cv::RETR_TREE,
                    cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
   std::vector<w_ocr_engine::characters_struct> modified_bounding_rects =
       ocr_object.contours_to_char_structs(contours);
@@ -470,51 +464,45 @@ void w_soccer::extract_all_image_char_clusters(
     int index = ref_index - (i + 1);
     if (clustered_characters[index].size() < 3 &&
         ocr_object.same_level(clustered_characters[index])) {
-      digits_candidates.push_back(clustered_characters[index]);
+      p_digits_candidates.push_back(clustered_characters[index]);
     }
     if (clustered_characters[index].size() >= 3 &&
         ocr_object.same_level(clustered_characters[index])) {
-      words_candidates.push_back(clustered_characters[index]);
+      p_words_candidates.push_back(clustered_characters[index]);
     }
-    if (clustered_characters[index][0].bound_rect.x < image.cols / 2 &&
+    if (clustered_characters[index][0].bound_rect.x < p_image.cols / 2 &&
         clustered_characters[index][clustered_characters[index].size() - 1]
-                .bound_rect.x > image.cols / 2 &&
+                .bound_rect.x > p_image.cols / 2 &&
         clustered_characters[index].size() < 16 &&
         clustered_characters[index].size() > 1) {
-      time_candidates.push_back(clustered_characters[index]);
+      p_time_candidates.push_back(clustered_characters[index]);
     }
   }
-  // cv::Mat temp_image = cv::Mat(image.rows, image.cols, CV_8UC1,
-  // cv::Scalar(0)); for (int i = 0; i < clustered_characters.size(); i++)
-  // {
-  // 	ocr_object.show_contours(temp_image, clustered_characters[i], "Hello",
-  // true);
-  // }
 
   clustered_characters.clear();
 
-  ocr_object.keep_twins(words_candidates, image.cols, image.rows, true);
-  ocr_object.keep_twins(digits_candidates, image.cols, image.rows, false);
-  ocr_object.keep_time(time_candidates);
+  ocr_object.keep_twins(p_words_candidates, p_image.cols, p_image.rows, true);
+  ocr_object.keep_twins(p_digits_candidates, p_image.cols, p_image.rows, false);
+  ocr_object.keep_time(p_time_candidates);
 
-  for (int i = 0; i < digits_candidates.size(); i++) {
-    for (size_t j = 0; j < digits_candidates[i].size(); j++) {
-      ocr_object.margin_bounding_rect(digits_candidates[i][j].bound_rect,
-                                      platform_free.margin, image);
+  for (int i = 0; i < p_digits_candidates.size(); i++) {
+    for (size_t j = 0; j < p_digits_candidates[i].size(); j++) {
+      ocr_object.margin_bounding_rect(p_digits_candidates[i][j].bound_rect,
+                                      platform_free.margin, p_image);
     }
   }
 
-  for (int i = 0; i < words_candidates.size(); i++) {
-    for (size_t j = 0; j < words_candidates[i].size(); j++) {
-      ocr_object.margin_bounding_rect(words_candidates[i][j].bound_rect,
-                                      platform_free.margin, image);
+  for (int i = 0; i < p_words_candidates.size(); i++) {
+    for (size_t j = 0; j < p_words_candidates[i].size(); j++) {
+      ocr_object.margin_bounding_rect(p_words_candidates[i][j].bound_rect,
+                                      platform_free.margin, p_image);
     }
   }
 
-  for (int i = 0; i < time_candidates.size(); i++) {
-    for (size_t j = 0; j < time_candidates[i].size(); j++) {
-      ocr_object.margin_bounding_rect(time_candidates[i][j].bound_rect,
-                                      platform_free.margin, image);
+  for (int i = 0; i < p_time_candidates.size(); i++) {
+    for (size_t j = 0; j < p_time_candidates[i].size(); j++) {
+      ocr_object.margin_bounding_rect(p_time_candidates[i][j].bound_rect,
+                                      platform_free.margin, p_image);
     }
   }
 
@@ -522,46 +510,40 @@ void w_soccer::extract_all_image_char_clusters(
 }
 
 void w_soccer::replace_team_names_with_most_similar_string(
-    _Inout_ std::vector<w_referee::match_result_struct> &result) {
-  for (int i = 0; i < int(result.size()); i++) {
-    // LOG_P(w_log_type::W_LOG_INFO, "recognized home name : %s",
-    // result[i].home_name.text); LOG_P(w_log_type::W_LOG_INFO, "recognized away
-    // name : %s", result[i].away_name.text);
+    _Inout_ std::vector<w_referee::match_result_struct> &p_result) {
+  for (int i = 0; i < int(p_result.size()); i++) {
     std::string path = get_env_string("SIMILAR_STRINGS_FILE_PATH");
-    result[i].home_name.text =
-        get_nearest_string(result[i].home_name.text, path);
-    result[i].away_name.text =
-        get_nearest_string(result[i].away_name.text, path);
-    // LOG_P(w_log_type::W_LOG_INFO, "recognized home name after replace with
-    // most similar: %s", result[i].home_name.text);
-    // LOG_P(w_log_type::W_LOG_INFO, "recognized away name after replace with
-    // most similar: %s", result[i].away_name.text);
+    p_result[i].home_name.text =
+        get_nearest_string(p_result[i].home_name.text, path);
+    p_result[i].away_name.text =
+        get_nearest_string(p_result[i].away_name.text, path);
   }
 }
 
 w_referee::match_result_struct w_soccer::initial_match_result_struct(
-    w_referee::frame_result_struct frame_data, cv::Mat &image)
+    w_referee::frame_result_struct p_frame_data,
+    cv::Mat &p_image)
 {
   w_referee::match_result_struct temp_match_data;
-  temp_match_data.all_frames_results.push_back(frame_data);
-  temp_match_data.stat = frame_data.stat;
-  temp_match_data.result_image = image;
-  temp_match_data.frame_number = frame_data.frame_number;
+  temp_match_data.all_frames_results.push_back(p_frame_data);
+  temp_match_data.stat = p_frame_data.stat;
+  temp_match_data.result_image = p_image;
+  temp_match_data.frame_number = p_frame_data.frame_number;
 
   return temp_match_data;
 }
 
-void w_soccer::update_match_data(_In_ w_referee::frame_result_struct frame_data,
-                                 _In_ cv::Mat &image) {
+void w_soccer::update_match_data(_In_ w_referee::frame_result_struct p_frame_data,
+                                 _In_ cv::Mat &p_image) {
   if (matches_data.size() == 0 ||
-      frame_data.frame_number >
+      p_frame_data.frame_number >
           matches_data[matches_data.size() - 1].frame_number + 10) {
-    matches_data.push_back(initial_match_result_struct(frame_data, image));
+    matches_data.push_back(initial_match_result_struct(p_frame_data, p_image));
   } else {
     matches_data[matches_data.size() - 1].frame_number =
-        frame_data.frame_number;
+        p_frame_data.frame_number;
     matches_data[matches_data.size() - 1].all_frames_results.push_back(
-        frame_data);
+        p_frame_data);
   }
 }
 

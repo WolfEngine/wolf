@@ -33,9 +33,9 @@ public:
   /*!
   The constructor of the class.
 
-  \param  video_path    The path of video.
+  \param  p_video_path    The path of video.
   */
-  W_API w_read_video_frames(std::string video_path);
+  W_API w_read_video_frames(std::string p_video_path);
 
   /*!
   The read_video_frame_by_frame function extracts frames of the input video one
@@ -48,16 +48,16 @@ public:
   The write_image_to_video function puts related images next to each other for
   creating a video.
 
-  \param  out_video_path    The path of output video.
+  \param  p_out_video_path    The path of output video.
 */
-  W_API void write_image_to_video(std::string out_video_path);
+  W_API void write_image_to_video(std::string p_out_video_path);
   /*!
   The read_specific_frame function reads a specific frame of the video.
 
-  \param  input_frame_number     Frame number of desired frame in the video
+  \param  p_input_frame_number     Frame number of desired frame in the video
   frames. \return    Specific frame of the video
 */
-  W_API cv::Mat read_specific_frame(int input_frame_number);
+  W_API cv::Mat read_specific_frame(int p_input_frame_number);
   /*!
   The get_current_frame_number function returns the current frame number.
 

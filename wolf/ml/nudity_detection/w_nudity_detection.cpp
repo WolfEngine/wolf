@@ -20,12 +20,12 @@ w_nud_det::w_nud_det(_In_ std::string& nudity_detection_model_path) {
 
 w_nud_det::~w_nud_det() = default;
 
-std::vector<float> w_nud_det::nudity_detection(_In_ uint8_t* pImageData, _In_ const int pImageWidth,
-                                 _In_ const int pImageHeight, _In_ const int pImageChannels)
+std::vector<float> w_nud_det::nudity_detection(_In_ uint8_t* p_image_data, _In_ const int p_image_width,
+                                 _In_ const int p_image_height, _In_ const int p_image_channels)
 {
   std::vector<float> result;
 
-	torch::Tensor tensor_image = torch::from_blob(pImageData, {1, pImageHeight, pImageWidth, pImageChannels}, torch::kByte);
+	torch::Tensor tensor_image = torch::from_blob(p_image_data, {1, p_image_height, p_image_width, p_image_channels}, torch::kByte);
 
 	std::vector<int> first_permute = get_env_vector_of_int("NUDITY_DETECTION_MODEL_FIRST_PERMUTE");
 
@@ -76,17 +76,16 @@ std::vector<float> w_nud_det::nudity_detection(_In_ uint8_t* pImageData, _In_ co
   return result;
 }
 
-void w_nud_det::network_warm_up(_In_ int pHeight, _In_ int pWidth) {
+void w_nud_det::network_warm_up(_In_ int p_height, _In_ int p_width) {
   for (int i = 0; i < 2; i++) {
-    cv::Mat const temp_image = cv::Mat(cv::Size(pWidth, pHeight), CV_8UC3, cv::Scalar(0, 0, 0));
-    auto result = nudity_detection(temp_image.data, pWidth, pHeight, temp_image.channels());
+    cv::Mat const temp_image = cv::Mat(cv::Size(p_width, p_height), CV_8UC3, cv::Scalar(0, 0, 0));
+    auto result = nudity_detection(temp_image.data, p_width, p_height, temp_image.channels());
   }
 }
 
-void w_nud_det::accuracy_check(
+float w_nud_det::accuracy_check(
 	_In_ std::string pInfoFilePath)
 {
-	// w_nud_det* nudity_detection = new w_nud_det(pModelPath);
 	std::vector<std::string> info_of_images = {};
 	if (std::filesystem::exists(pInfoFilePath))
 	{
@@ -132,7 +131,10 @@ void w_nud_det::accuracy_check(
 		}
 	}
 
-	float model_accuracy = float(number_of_correct_decision) / float(number_of_act);
+	float model_accuracy = -1;
+	if (number_of_act > 0) {
+		model_accuracy = float(number_of_correct_decision) / float(number_of_act);
+	}
 
-	std::cout << "The accuracy of model for this test database is: " << model_accuracy << std::endl;
+	return model_accuracy;
 }

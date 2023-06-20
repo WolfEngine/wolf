@@ -32,14 +32,6 @@ jobs:
           .\vcpkg\bootstrap-vcpkg.bat
           .\vcpkg\vcpkg integrate install
 
-      - name: Get SW
-        uses: egorpugin/sw-action@master
-
-      - name: SW setup and add to PATH
-        run: |
-          ./sw setup
-          echo "D:\a\WolfEngine\wolf" >> $env:GITHUB_PATH
-
       - name: Setup OpenCppCoverage and add to PATH
         id: setup_opencppcoverage
         run: |

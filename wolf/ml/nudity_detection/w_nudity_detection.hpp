@@ -10,10 +10,6 @@
 #include <torch/script.h>
 #include <torch/torch.h>
 
-// #include "cppflow/cppflow.h"
-// #include "dlib_export.h"
-// #include "salieri.h"
-
 #include "wolf.hpp"
 
 namespace wolf::ml::nudet {
@@ -34,35 +30,35 @@ class w_nud_det {
   The nudity_detection function accepts image information as input and returns a float vector 
   containing the model result.
 
-          \param pImageData the spacial image pixel data.
-          \param pImageWidth the image width.
-          \param pImageHeight the image height.
-          \param pImageChannels the number of image channels.
+          \param p_image_data the spacial image pixel data.
+          \param p_image_width the image width.
+          \param p_image_height the image height.
+          \param p_image_channels the number of image channels.
           \return a vector of float numbers each between 0 to 1 that shows the nudity factors.
   */
-  W_API std::vector<float> nudity_detection(_In_ uint8_t* pImageData,
-                                _In_ int pImageWidth, _In_ int pImageHeight, _In_ int pImageChannels);
+  W_API std::vector<float> nudity_detection(_In_ uint8_t* p_image_data,
+                                _In_ int p_image_width, _In_ int p_image_height, _In_ int p_image_channels);
 
   /*!
   The function uses to warm-up the network in the w_nud_det class initialization.
 
-          \param pHeight the temp image height.
-          \param pWidth the temp image width.
+          \param p_height the temp image height.
+          \param p_width the temp image width.
           \return (void)
   */
-  W_API void network_warm_up(_In_ int pHeight, _In_ int pWidth);
+  W_API void network_warm_up(_In_ int p_height, _In_ int p_width);
 
   /*!
   The function uses to calculate the accuracy of the input model over pre-labeled images.  
-  	\param pModelPath the path to the nsfw model
-  	\param pInfoFilePath the path to the labeled file.
-  	\return (void)
+
+  	\param p_info_file_path the path to the labeled file.
+  	\return the accuracy of ml model throw given picturs.
   */
-  W_API void accuracy_check(
-  	_In_ std::string pInfoFilePath);
+  W_API float accuracy_check(
+  	_In_ std::string p_info_file_path);
 
  private:
-  // :cppflow:model _model;
   torch::jit::script::Module _model;
 };
+
 }  // namespace wolf::ml::nudet
