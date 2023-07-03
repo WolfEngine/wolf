@@ -123,6 +123,12 @@ using w_binary = std::vector<std::byte>;
  */
 W_API std::string w_init();
 
+/*
+ * get environment variable
+ * @param p_env, the env name
+ */
+W_API std::string get_env(const std::string_view p_env);
+
 /**
  * make a string via format
  * @param p_fmt, the fmt

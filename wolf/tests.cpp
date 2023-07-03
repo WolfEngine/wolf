@@ -1,6 +1,6 @@
 /*
-        Project: Wolf Engine. Copyright © 2014-2023 Pooya Eimandar
-        https://github.com/WolfEngine/wolf
+  Project: Wolf Engine. Copyright © 2014-2023 Pooya Eimandar
+  https://github.com/WolfEngine/wolf
 */
 
 #include <wolf/system/w_leak_detector.hpp>
@@ -8,19 +8,17 @@
 
 #define BOOST_TEST_MODULE wolf
 #include <boost/test/included/unit_test.hpp>
-
-
-#include <string_view>
-#include <filesystem>
 #include <cstdlib>
+#include <filesystem>
+#include <string_view>
 
 constexpr const char* ENVKEY_CONTENT_PATH = "WOLF_CONTENT_PATH";
-inline std::filesystem::path get_content_path(const std::string_view p_subpath)
-{
-  auto env_content_path = std::getenv(ENVKEY_CONTENT_PATH);
-  return env_content_path
-       ? std::filesystem::path(env_content_path).append(p_subpath)
-       : std::filesystem::current_path().append(p_subpath);
+inline std::filesystem::path get_content_path(
+    const std::string_view p_subpath) {
+  auto env_content_path = wolf::get_env(ENVKEY_CONTENT_PATH);
+  return env_content_path.empty()
+             ? std::filesystem::current_path().append(p_subpath)
+             : std::filesystem::path(env_content_path).append(p_subpath);
 }
 
 BOOST_AUTO_TEST_CASE(wolf_test) {

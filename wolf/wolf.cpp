@@ -69,3 +69,26 @@ std::string wolf::w_init() {
                    WOLF_PATCH_VERSION, WOLF_DEBUG_VERSION);
   return _version;
 }
+
+std::string wolf::get_env(const std::string_view p_env) {
+  std::string val;
+  if (p_env.empty()) {
+    return val;
+  }
+
+#ifdef _MSC_VER
+  char *buf = nullptr;
+  size_t size = 0;
+  if (_dupenv_s(&buf, &size, p_env.data()) == 0 && buf != nullptr) {
+    val = buf;
+    free(buf);
+  }
+#else
+  const auto buf = std::getenv(p_env.data());
+  if (buf != nullptr) {
+    val = buf;
+  }
+#endif
+
+  return val;
+}
